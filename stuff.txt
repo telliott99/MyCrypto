@@ -1,0 +1,115 @@
+good gpg reference:
+http://www.spywarewarrior.com/uiuc/gpg/gpg-com-4.htm#4-2b
+
+manual:
+https://www.gnupg.org/gph/en/manual/book1.html
+
+other refs:
+http://kb.iu.edu/data/awiu.html
+https://www.gnupg.org/gph/en/manual/book1.html
+
+
+gpg installer
+https://gpgtools.org
+
+I installed command line tools only (MacGPG?)
+
+# key generation
+
+gpg --gen-key		# use defaults
+
+
+$ gpg --list-keys
+/Users/telliott_admin/.gnupg/pubring.gpg
+----------------------------------------
+pub   2048R/DE4834A7 2014-05-28
+uid                  tom elliott
+sub   2048R/BA69E987 2014-05-28
+
+
+
+gpg -e -r 'tom elliott' stuff.txt
+
+$ hexdump -C stuff.txt.gpg
+00000000  85 01 0c 03 c9 d1 71 44  90 1e 15 90 01 07 fe 2c  |......qD.......,|
+00000010  fa 93 e6 f2 9d 79 0a f3  2a 0b ab 31 64 5f f3 ae  |.....y..*..1d_..|
+
+$ gpg --decrypt stuff.txt.gpg
+gpg: encrypted with 2048-bit RSA key, ID 901E1590, created 2014-05-31
+      "tom elliott"
+good gpg reference:
+
+works!
+
+gpg -e -r DE4834A7 stuff.txt     # worked once, not again!
+
+symmetric encryption with passphrase
+
+gpg --output stuff.gpg --symmetric stuff.txt
+$ gpg --decrypt stuff.gpg
+gpg: CAST5 encrypted data
+gpg: encrypted with 1 passphrase
+good gpg reference:
+
+did not prompt for passphrase ...
+
+RSA module:
+
+# generate keys and save
+
+import rsa
+pbk,pk = rsa.newkeys(4096)
+# export data
+data = pbk.save_pkcs1()
+# write to disk as kf and kf.pub
+
+# load keys
+
+import utils
+data = utils.load_data('kf')
+pk = rsa.PrivateKey.load_pkcs1(data)
+data = utils.load_data('kf.pub')
+pbk = rsa.PublicKey.load_pkcs1(data)
+
+# encrypt
+msg = "hello there, world"
+c = rsa.encrypt(msg,pbk)
+
+>>> for n in c[:10]:
+...     print ord(n),
+... 
+70 61 222 132 48 91 14 207 52 58
+>>>
+
+>>> print rsa.decrypt(c,pk)
+hello there, world
+>>>
+
+# AES encryption using openssl
+
+openssl rand 128 > k1.bin
+openssl rand 128 > k2.bin
+cat k1.bin k2.bin > k.bin
+
+openssl enc -aes-256-cbc -salt -in stuff.txt \
+-out c.txt -pass file:./k.bin
+# decrypt AES
+openssl enc -d -aes-256-cbc -in c.txt \
+-out m.txt -pass file:./k.bin
+
+hexdump -C -n 32 c.txt
+hexdump -C -n 32 m.txt
+
+$ hexdump -C -n 32 c.txt
+00000000  53 61 6c 74 65 64 5f 5f  bc b5 45 c3 96 82 a5 20  |Salted__..E.... |
+00000010  88 7d fb f9 95 b5 73 70  cf 64 24 14 f4 c1 cb cb  |.}....sp.d$.....|
+00000020
+$ hexdump -C -n 32 m.txt
+00000000  23 20 67 65 6e 65 72 61  74 65 20 6b 65 79 73 20  |# generate keys |
+00000010  61 6e 64 20 73 61 76 65  0a 0a 69 6d 70 6f 72 74  |and save..import|
+00000020
+$ 
+
+
+
+

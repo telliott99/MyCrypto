@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Working with bytes in Python &mdash; MyCrypto 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MyCrypto 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Using SSH for remote login" href="server.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="server.html" title="Using SSH for remote login"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MyCrypto 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="working-with-bytes-in-python">
+<span id="bytes"></span><h1>Working with bytes in Python<a class="headerlink" href="#working-with-bytes-in-python" title="Permalink to this headline">¶</a></h1>
+<p>In this section, I want to do a brief review of operations with data as bytes (rather than say, ASCII strings) in Python.</p>
+<p>The quick take on this is that <tt class="docutils literal"><span class="pre">int</span></tt> is a central type, so to convert from hexadecimal to binary or back again, we go through an <tt class="docutils literal"><span class="pre">int</span></tt> as an intermediary value.  For example, the function <tt class="docutils literal"><span class="pre">hex</span></tt> converts an integer to its hexadecimal equivalent.  The result has type <tt class="docutils literal"><span class="pre">str</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="nb">hex</span><span class="p">(</span><span class="mi">65</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">&lt;type &#39;str&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span>
+<span class="go">&#39;0x41&#39;</span>
+</pre></div>
+</div>
+<p>since, as we can calculate:</p>
+<div class="math">
+\[65 = 4 \times 16^1 + 1 \times 16^0\]</div>
+<p>According to the docs, <tt class="docutils literal"><span class="pre">hex</span></tt> will take as input an integer of any size:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span><span class="p">(</span><span class="mi">65537</span><span class="p">)</span>
+<span class="go">&#39;0x10001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="nb">hex</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">29618</span>
+</pre></div>
+</div>
+<p>We can convert the hexadecimal string back to an integer by specifying the appropriate base (base 16) in a call to <tt class="docutils literal"><span class="pre">int</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="nb">hex</span><span class="p">(</span><span class="mi">65537</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span>
+<span class="go">65537</span>
+</pre></div>
+</div>
+<p>In the same way, we can get the binary representation of an integer using <tt class="docutils literal"><span class="pre">bin</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">bin</span><span class="p">(</span><span class="mi">17</span><span class="p">)</span>
+<span class="go">&#39;0b10001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bin</span><span class="p">(</span><span class="mi">33</span><span class="p">)</span>
+<span class="go">&#39;0b100001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="mi">33</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span>
+<span class="go">&#39;0b100001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="go">&lt;type &#39;str&#39;&gt;</span>
+</pre></div>
+</div>
+<p>As before with <tt class="docutils literal"><span class="pre">hex</span></tt>, the output from <tt class="docutils literal"><span class="pre">bin</span></tt> is a string.  Notice that the output loses leading <tt class="docutils literal"><span class="pre">0</span></tt>&#8216;s.  If you want to specify the padding, there are a couple of options.  One way is to use <tt class="docutils literal"><span class="pre">zfill</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span>
+<span class="go">&#39;0b01000001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="mi">65</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span>
+<span class="go">&#39;0b1000001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="s">&#39;0b&#39;</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span>
+<span class="go">&#39;0b01000001&#39;</span>
+</pre></div>
+</div>
+<p>Two other ways use fancy formatting</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;{:08b}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">65</span><span class="p">)</span>
+<span class="go">&#39;01000001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">format</span><span class="p">(</span><span class="mi">65</span><span class="p">,</span> <span class="s">&#39;#010b&#39;</span><span class="p">)</span>
+<span class="go">&#39;0b01000001&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>(To do:  explain these!)</p>
+<p>Having generated a binary string, we can go back to the equivalent integer by specifying base 2 in a call to <tt class="docutils literal"><span class="pre">int</span></tt>, and then go on to hexadecimal from there if desired.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="mi">65</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">65</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">&#39;0x41&#39;</span>
+</pre></div>
+</div>
+<p>Note that both of these examples are string representations of hexadecimal and binary numbers.  They are not really binary data.</p>
+<p>Instead, an example binary data might be obtained by entering the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\xff</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span>
+<span class="go">&#39;\xff&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="go">&lt;type &#39;str&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">d</span>
+<span class="go">?</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span>
+<span class="go">&#39;0xff&#39;</span>
+</pre></div>
+</div>
+<p>To enter binary data we use <tt class="docutils literal"><span class="pre">\xff</span></tt>.  For a multibyte value each byte is preceded by <tt class="docutils literal"><span class="pre">\x</span></tt>.</p>
+<p>(To do:  explain the difference between <tt class="docutils literal"><span class="pre">print</span></tt> just evaluating the expression in the interpreter.)</p>
+<p>The <tt class="docutils literal"><span class="pre">print</span></tt> function will use the printable character if there is one:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\x42</span><span class="s">&#39;</span><span class="p">)</span>
+<span class="go">B</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\x0a</span><span class="s">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>It doesn&#8217;t format correctly here, but the newline gave us two empty lines.  The interpreter starts output on a new blank line, then &#8220;prints&#8221; the newline (<tt class="docutils literal"><span class="pre">LF</span></tt>,&#8217;x0a&#8217;)  by moving to a second blank line, then finally gives us the interpreter prompt <tt class="docutils literal"><span class="pre">&gt;&gt;&gt;</span></tt> after moving again to a new line.</p>
+<p>An example of multiple bytes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x9b\x3c</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span>
+<span class="go">&#39;\x9b&lt;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="go">&lt;type &#39;str&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">data</span>
+<span class="go">?&lt;</span>
+</pre></div>
+</div>
+<p>We still seem to be dealing with strings.  The hexadecimal value <tt class="docutils literal"><span class="pre">3c</span></tt> (<tt class="docutils literal"><span class="pre">\x3c</span></tt>) was printed as <tt class="docutils literal"><span class="pre">&lt;</span></tt> in both tries.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">ord</span><span class="p">(</span><span class="s">&#39;&lt;&#39;</span><span class="p">)</span>
+<span class="go">60</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+<span class="go">&#39;0x3c&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="mi">60</span><span class="p">))</span>
+<span class="go">&lt;type &#39;str&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">chr</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+<span class="go">&#39;&lt;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="mi">60</span><span class="p">))</span>
+<span class="go">0x3c</span>
+</pre></div>
+</div>
+<p>The explanation is that <tt class="docutils literal"><span class="pre">&lt;</span></tt> is the ASCII representation of the integer value 60, which is equal to the hexadecimal value <tt class="docutils literal"><span class="pre">3c</span></tt>.  Since <tt class="docutils literal"><span class="pre">&lt;</span></tt> is a printable character, that is what Python shows us.  This has been a point of confusion for me in dealing with binary data in Python.  Curiously, if we convert explicitly to string and then print, we don&#8217;t get the quotes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">hex</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+<span class="go">0x3c</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+<span class="go">&#39;0x3c&#39;</span>
+</pre></div>
+</div>
+<p>Here is a second example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="go">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="go">&lt;type &#39;str&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span>
+<span class="go">&#39;]A@*\xbcK*v\xb9q\x9d\x91\x10\x17\xc5\x92&#39;</span>
+</pre></div>
+</div>
+<p>As before, if a printable character is available, Python will print that.  Otherwise it prints <tt class="docutils literal"><span class="pre">\x</span></tt> plus the hex representation.  In the above string, there are eight printable characters, each one byte (]A&#64;*K*vq), plus another eight explicit bytes.</p>
+<p>If you want the hexadecimal representation for all 16 of them, you could use <tt class="docutils literal"><span class="pre">ord</span></tt> to convert each value to an integer:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">d</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+<span class="go">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">L</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">93</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">L</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[93, 65, 64, 42]</span>
+</pre></div>
+</div>
+<p>The last four are non-printing, and their integer values are &gt; 128:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">L</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+<span class="go">[16, 23, 197, 146]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">hex</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">L</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">&#39;0x5d0x410x400x2a0xbc0x4b0x2a0x760xb90x710x9d0x910x100x170xc50x92&#39;</span>
+</pre></div>
+</div>
+<p>If we write the data to disk</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">FH</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;x.bin&#39;</span><span class="p">,</span><span class="s">&#39;wb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">FH</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If we examine this from the shell:</p>
+<div class="highlight-bash"><div class="highlight"><pre>&gt; hexdump -C x.bin
+00000000  5d 41 40 2a bc 4b 2a 76  b9 71 9d 91 10 17 c5 92  |<span class="o">]</span>A@*.K*v.q......|
+00000010
+</pre></div>
+</div>
+<p>And if we read it back in as binary data:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">FH</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;x.bin&#39;</span><span class="p">,</span><span class="s">&#39;rb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">FH</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span>
+<span class="go">&#39;]A@*\xbcK*v\xb9q\x9d\x91\x10\x17\xc5\x92&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">==</span> <span class="n">d</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>We can generate binary data from integers using the function <tt class="docutils literal"><span class="pre">ord</span></tt>.  As an example, the last byte of the data above</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">146</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&lt;type &#39;str&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span>
+<span class="go">&#39;\x92&#39;</span>
+</pre></div>
+</div>
+<p>This only works one byte at a time:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">chr</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">ValueError</span>: <span class="n">chr() arg not in range(256)</span>
+</pre></div>
+</div>
+<p>In summary, integers seem to be the unifying type.  From integers we can go to hexadecimal (<tt class="docutils literal"><span class="pre">hex</span></tt>), 0s and <cite>s (``bin`</cite>) or binary data (<tt class="docutils literal"><span class="pre">chr</span></tt>).  The complementary functions which return us to integers are <tt class="docutils literal"><span class="pre">int</span></tt> (with the appropriate base), or in the last case, <tt class="docutils literal"><span class="pre">ord</span></tt>.</p>
+<p>We can use the <tt class="docutils literal"><span class="pre">struct</span></tt> module to look at multibyte data.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="mi">65</span><span class="p">,</span><span class="mi">146</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">chr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">L</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span>
+<span class="go">&#39;A\x92&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<p>The last result should not be a surprise any more.  If we want to go through the bytes one at a time, the reasonable way is to use <tt class="docutils literal"><span class="pre">ord</span></tt>.  But another way would be:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">struct</span> <span class="kn">import</span> <span class="n">unpack</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;B&#39;</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">(65,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;B&#39;</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="go">(146,)</span>
+</pre></div>
+</div>
+<p>The advantage of this approach is we can get an integer (encoded in binary) in one step:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x01\x00\x00\x01</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span>
+<span class="go">&#39;\x01\x00\x00\x01&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">&lt;type &#39;str&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>
+<span class="go">(16777217,)</span>
+</pre></div>
+</div>
+<p>We can check it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="mi">256</span><span class="o">**</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="go">16777217</span>
+</pre></div>
+</div>
+<p>Or just use <tt class="docutils literal"><span class="pre">ord</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">h</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">1</span>
+<span class="go">0</span>
+<span class="go">0</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="server.html"
+                        title="previous chapter">Using SSH for remote login</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/bytes.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="server.html" title="Using SSH for remote login"
+             >previous</a> |</li>
+        <li><a href="index.html">MyCrypto 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Tom Elliott.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

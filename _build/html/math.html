@@ -1,0 +1,321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mathematical Introduction &mdash; MyCrypto 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MyCrypto 1.0 documentation" href="index.html" />
+    <link rel="next" title="Example using openssl" href="openssl.html" />
+    <link rel="prev" title="Practical Cryptography" href="intro.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="openssl.html" title="Example using openssl"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Practical Cryptography"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MyCrypto 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mathematical-introduction">
+<span id="math"></span><h1>Mathematical Introduction<a class="headerlink" href="#mathematical-introduction" title="Permalink to this headline">¶</a></h1>
+<p><strong>Overview</strong></p>
+<p>This short write-up is an exploration of public-key cryptography. To use the method, one first generates a pair of keys called the public key and a corresponding private key. These have a symmetry property, so that if one is used to encrypt a message, then the other one can be used to decrypt the message.</p>
+<p>Suppose that Alice generates a public/private key pair and then distributes the public key in such a way that Bob is certain that he really knows Alice’s public key.</p>
+<p>Bob can encrypt a message with the public key and send it to Alice with the knowledge that only Alice can decrypt it using the private key.</p>
+<p>Alternatively, Alice can encrypt a message with her private key and send it to Bob. Successful decryption with Alice’s public key proves that the message is from Alice.</p>
+<p>The process of encryption and decryption is computationally expensive, and my understanding is that only short messages should be exchanged by this method in any case. Such a message would typically consist of yet another key which can be used to encode the main message.</p>
+<p>We start with two prime numbers, <em>p</em> and <em>q</em>. I obtained mine from a list of primes (near the 50 millionth prime):</p>
+<p><a class="reference external" href="http://primes.utm.edu/lists">http://primes.utm.edu/lists</a></p>
+<p>The prime numbers for real-world use are much larger than this.</p>
+<p>Python code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">p</span> <span class="o">=</span> <span class="mi">961748941</span>
+<span class="n">q</span> <span class="o">=</span> <span class="mi">982451653</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">p</span><span class="o">*</span><span class="n">q</span>
+</pre></div>
+</div>
+<p>If you paste the lines above into the Python interpreter, you should be able to query the value of <em>n</em> like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">n</span>
+<span class="go">944871836856449473</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="nb">bin</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+<span class="go">62</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>I am showing the plain code to facilitate your copying and pasting into the interpreter to try it out.</p>
+<p>This means we can securely encode not more than about 62 bits. Now compute</p>
+<div class="math">
+\[φ(n) = (p − 1)(q − 1)\]</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">q</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="mi">944871834912248880</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Now choose a number <em>e</em> such that:</p>
+<div class="math">
+\[\begin{split}1 &lt; e &lt; φ(n)\end{split}\]</div>
+<p>called the public key exponent, with the requirement that e should be coprime to φ(n) (they should have no common factor other than 1).</p>
+<p>The easiest way to do that is to pick a prime number like</p>
+<div class="math">
+\[e = 2^{16} + 1 =65537\]</div>
+<p>I also confirmed that <em>e</em> is on a list of primes:</p>
+<p><a class="reference external" href="http://primes.utm.edu/lists/small/10000.txt">http://primes.utm.edu/lists/small/10000.txt</a></p>
+<p>Just check that there is a remainder when dividing by φ(n)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span>
+<span class="go">944871834912248880</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">16</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span>
+<span class="go">65537</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="o">%</span> <span class="n">e</span>
+<span class="go">42186</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>The public key is (<em>n</em>, <em>e</em>).</p>
+<p>Actually, in practice, there is little variation in <em>e</em>.  It is typically the same value as used here, 65537.  According to Laurens Van Houtven&#8217;s <em>Crpto 101</em>:</p>
+<p><a class="reference external" href="https://www.crypto101.io">https://www.crypto101.io</a></p>
+<p><em>e</em> is either 65537 or 3, and this is because there are very few binary <tt class="docutils literal"><span class="pre">1</span></tt>&#8216;s in these numbers (only a single digit <tt class="docutils literal"><span class="pre">1</span></tt>), and as a result the exponentiation which we will compute <em>a lot</em></p>
+<div class="math">
+\[m^e\]</div>
+<p>is much more efficient.</p>
+<p>The private key consists of <em>n</em> plus another number <em>d</em> which is computed from <em>φ(n)</em> and thus requires knowledge of <em>p</em> and <em>q</em> (below).</p>
+<p>That is why the process of breaking this method of encryption is described as being the same as the problem of finding two primes that can factor a large number:  <em>n</em>, the product of the primes <em>p</em> and <em>q</em>. <em>n</em> is known because it is part of the public key.</p>
+<p><strong>Encryption</strong></p>
+<p>We also need to generate a number representing our message <em>m</em>. ASCII-encoding is certainly a possible way to do this, though quite wasteful since (especially if we just use lowercase) most bytes never appear in any message.</p>
+<p>In this code sample, we convert the message ”hello world” into a binary number using the <tt class="docutils literal"><span class="pre">ord</span></tt> and <tt class="docutils literal"><span class="pre">bin</span></tt> functions. Because bin doesn’t show leading zeroes, we add them back with <tt class="docutils literal"><span class="pre">zfill</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="s">&quot;hello world&quot;</span>
+<span class="n">L</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">L</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">126207244316550804821666916L</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>A more compact encoding might be achieved like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">string</span> <span class="kn">import</span> <span class="n">lowercase</span> <span class="k">as</span> <span class="n">lc</span>
+<span class="n">D</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lc</span><span class="p">,</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lc</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
+<span class="c"># don’t forget the space:</span>
+<span class="n">D</span><span class="p">[</span><span class="s">&quot; &quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>The dictionary <tt class="docutils literal"><span class="pre">D</span></tt> assigns an integer for each lowercase letter. Now do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="s">&quot;hello world&quot;</span>
+<span class="n">m</span><span class="o">=</span><span class="mi">0</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">27</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">m</span> <span class="o">+=</span> <span class="n">D</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">*</span> <span class="n">N</span><span class="o">**</span><span class="n">i</span>
+</pre></div>
+</div>
+<p>The number <em>m</em> is being formed from the integer values for each character of <tt class="docutils literal"><span class="pre">hello</span> <span class="pre">world</span></tt>. For example, if the message were simply <tt class="docutils literal"><span class="pre">hel</span></tt> the value would be</p>
+<div class="math">
+\[8 + (5 × 27) + (12 × 272) = 8891\]</div>
+<p>since <tt class="docutils literal"><span class="pre">h</span></tt> is the eighth letter, <tt class="docutils literal"><span class="pre">e</span></tt> is the fifth letter, and <tt class="docutils literal"><span class="pre">l</span></tt> is letter number 12.</p>
+<p>The result can be viewed as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span>
+<span class="go">920321254041092</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>The number <em>is</em> our message. To read it, just reverse the process:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">N</span> <span class="o">=</span> <span class="mi">27</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">920321254041092</span>
+<span class="n">rD</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">D</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span><span class="n">D</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+<span class="k">while</span> <span class="n">m</span><span class="p">:</span>
+    <span class="k">print</span> <span class="n">rD</span><span class="p">[</span><span class="n">m</span> <span class="o">%</span> <span class="n">N</span><span class="p">],</span>
+    <span class="n">m</span> <span class="o">/=</span> <span class="n">N</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="n">e</span> <span class="n">l</span> <span class="n">l</span> <span class="n">o</span>   <span class="n">w</span> <span class="n">o</span> <span class="n">r</span> <span class="n">l</span> <span class="n">d</span>
+</pre></div>
+</div>
+<p>While the above encoding could be viewed as a form of encryption, it is very weak. The encryption function we will use is</p>
+<div class="math">
+\[c = m^e mod \ n\]</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">m</span> <span class="o">=</span> <span class="mi">920321254041092</span>
+<span class="n">e</span> <span class="o">=</span> <span class="mi">65537</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">944871836856449473</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">m</span><span class="o">**</span><span class="n">e</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="go">980692</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">x</span> <span class="o">%</span> <span class="n">n</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span>
+<span class="go">448344912451359241L</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>The number <em>c</em> is our ciphertext. (The L on the end signifies a Python long, a type of number).</p>
+<p><span class="math">\(x = m^e\)</span> is a very large number!  Its decimal representation has nearly one million digits.</p>
+<p>It is much more efficient to do the mod operation at the same time as the exponentiation. The Python built-in function <tt class="docutils literal"><span class="pre">pow</span></tt> allows that as an option:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">pow</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">e</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+<span class="go">448344912451359241L</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p><strong>Decryption</strong></p>
+<p>There is one more number we need to decode the encrypted text. We will call this number <em>d</em>, and it is referred to as the exponent of the private key.</p>
+<p>The private key is (<em>d</em>,*n*), although just the <em>d</em> part is actually secret. Finding <em>d</em> is the only tricky part of the whole operation, but it only needs to be computed once for a given key pair.</p>
+<p><em>d</em> is called the modular multiplicative inverse of e (mod φ(n)).</p>
+<p>What this means is that we want <em>d</em> such that</p>
+<p>d × e = 1 (mod φ(n))</p>
+<p>Substituting the known values for <em>e</em> and φ(n)</p>
+<p>d × 65537 = 1 (mod 944871834912248880)</p>
+<p>I found a simple implementation for computing <em>d</em> here:</p>
+<p><a class="reference external" href="http://stackoverflow.com/questions/4798654">http://stackoverflow.com/questions/4798654</a></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">egcd</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">g</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">egcd</span><span class="p">(</span><span class="n">b</span> \<span class="o">%</span> <span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="p">(</span><span class="n">b</span> <span class="o">//</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">modinv</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+    <span class="n">g</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">egcd</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">g</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;modular inverse does not exist&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">%</span> <span class="n">m</span>
+</pre></div>
+</div>
+<p>I have not figured out how it works, but it is easy to show that it does. I saved the code in a file <tt class="docutils literal"><span class="pre">mod.py</span></tt>. Let’s try it out:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">mod</span> <span class="kn">import</span> <span class="n">modinv</span>
+<span class="n">e</span> <span class="o">=</span> <span class="mi">65537</span>
+<span class="n">phi</span> <span class="o">=</span> <span class="mi">944871834912248880</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">modinv</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="n">phi</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span>
+<span class="go">8578341116816273</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">*</span><span class="n">e</span> <span class="o">%</span> <span class="n">phi</span>
+<span class="go">1L</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>So now we are finally ready to decrypt:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span> <span class="o">=</span> <span class="mi">448344912451359241</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">944871836856449473</span>
+<span class="n">d</span> <span class="o">=</span> <span class="mi">8578341116816273</span>
+<span class="n">p</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="il">920321254041092L</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Recall</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="mi">920321254041092</span>
+</pre></div>
+</div>
+<p>We have successfully generated a key pair, and used it to encrypt and decrypt a simple message. Now we need to show that we can also encrypt with private key, and decrypt with public one:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">m</span> <span class="o">=</span> <span class="mi">920321254041092</span>
+<span class="n">d</span> <span class="o">=</span> <span class="mi">8578341116816273</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">944871836856449473</span>
+<span class="n">c</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span>
+<span class="go">461000660869754451L</span>
+<span class="go">e = 65537</span>
+<span class="go">p = pow(c,e,n)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span>
+<span class="go">920321254041092L</span>
+</pre></div>
+</div>
+<p>We have again recovered our plaintext message: <em>p</em> is equal to <em>m</em>.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter">Practical Cryptography</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="openssl.html"
+                        title="next chapter">Example using openssl</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/math.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="openssl.html" title="Example using openssl"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Practical Cryptography"
+             >previous</a> |</li>
+        <li><a href="index.html">MyCrypto 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Tom Elliott.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

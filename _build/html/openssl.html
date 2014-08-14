@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Example using openssl &mdash; MyCrypto 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MyCrypto 1.0 documentation" href="index.html" />
+    <link rel="next" title="Taking keys apart" href="structure.html" />
+    <link rel="prev" title="Mathematical Introduction" href="math.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="structure.html" title="Taking keys apart"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="math.html" title="Mathematical Introduction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MyCrypto 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="example-using-openssl">
+<span id="openssl"></span><h1>Example using openssl<a class="headerlink" href="#example-using-openssl" title="Permalink to this headline">¶</a></h1>
+<p><strong>Key generation and basic usage</strong></p>
+<p>In this  chapter we will go through an example of using public-key cryptography. Let’s explore a very simple method of file encryption using <tt class="docutils literal"><span class="pre">ssh</span></tt> and <tt class="docutils literal"><span class="pre">openssl</span></tt>. The demo uses OS X Terminal but it would be very similar on Linux.</p>
+<p>The first step is to generate an RSA key pair. Normally one would do something like:</p>
+<div class="highlight-bash"><div class="highlight"><pre>ssh-keygen -t rsa -C <span class="s2">&quot;name@host&quot;</span>
+</pre></div>
+</div>
+<p>Here <tt class="docutils literal"><span class="pre">-C</span></tt> is a comment (for convenience of the user only, not transmitted), <tt class="docutils literal"><span class="pre">-t</span></tt> is the type of key, <tt class="docutils literal"><span class="pre">-b</span></tt> is number of bits (the default for RSA is 2048), and <tt class="docutils literal"><span class="pre">-m</span></tt> is the format (the default is RFC4716 but PEM is also an option).</p>
+<p>If I were generating RSA keys for actual use, I would write them to the default filepaths: <tt class="docutils literal"><span class="pre">~/.ssh/id</span> <span class="pre">rsa</span></tt> and <tt class="docutils literal"><span class="pre">~/.ssh/id</span> <span class="pre">rsa.pub</span></tt>.  But instead, for this demo I’m going to put them on the Desktop.  This first step generates only the private key:</p>
+<div class="highlight-bash"><div class="highlight"><pre>ssh-keygen -t rsa -C <span class="s2">&quot;te&quot;</span> -f ./kf
+</pre></div>
+</div>
+<p>At the prompt, I can enter a passphrase: <tt class="docutils literal"><span class="pre">abcde</span></tt>.  This is not strictly necessary.  The purpose is to protect the private (secret) keyfile on your machine, by encrypting it.</p>
+<p>This produces two files: <tt class="docutils literal"><span class="pre">kf</span></tt> and <tt class="docutils literal"><span class="pre">kf.pub</span></tt>.  We can check the fingerprint like this:</p>
+<div class="highlight-bash"><div class="highlight"><pre>ssh-keygen -lf kf
+</pre></div>
+</div>
+<p>The output is:</p>
+<div class="highlight-bash"><div class="highlight"><pre>2048 05:f4:3a:1d:b6:48:7e:2f:1f:e5:a0:c7:bd:c6:bc:d8 te <span class="o">(</span>RSA<span class="o">)</span>
+</pre></div>
+</div>
+<p>Now for an example.  The next step uses <tt class="docutils literal"><span class="pre">openssl</span></tt>. This utility can do a lot of things, for example, digests. Here are some possible approaches</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nb">echo</span> <span class="s2">&quot;hello world&quot;</span> | openssl sha1
+<span class="nb">echo</span> <span class="s2">&quot;hello world&quot;</span> | openssl md5
+openssl md5 ./p.txt
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>openssl md5 ~/Desktop/p.txt
+MD5<span class="o">(</span>/Users/telliott_admin/Desktop/p.txt<span class="o">)=</span> 6f5902ac237024bdd0c176cb93063dc4
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">openssl</span></tt> can also do <tt class="docutils literal"><span class="pre">base64</span></tt> encoding:</p>
+<div class="highlight-bash"><div class="highlight"><pre>openssl base64 -in p.txt -out b.txt
+openssl base64 -d -in b.txt
+</pre></div>
+</div>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Base64">http://en.wikipedia.org/wiki/Base64</a></p>
+<p>We first use it to output the public key in PEM format:</p>
+<div class="highlight-bash"><div class="highlight"><pre>openssl rsa -in kf -pubout &gt; ./kf.pem
+</pre></div>
+</div>
+<p>Now we write this short message to a file:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nb">echo</span> <span class="s2">&quot;hello world&quot;</span> &gt;  /Desktop/p.txt
+</pre></div>
+</div>
+<p>and encrypt it</p>
+<div class="highlight-bash"><div class="highlight"><pre>cat p.txt | openssl rsautl -encrypt -pubin -inkey kf.pem &gt; c.txt
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">-pubin</span></tt> option means to encrypt with the public key.  We can also specify the input and output files like this:</p>
+<div class="highlight-bash"><div class="highlight"><pre>openssl rsautl -encrypt -in p.txt -out c.txt -pubin -inkey kf.pem
+</pre></div>
+</div>
+<p>Take a look</p>
+<div class="highlight-bash"><div class="highlight"><pre>hexdump -C c.txt
+</pre></div>
+</div>
+<p>Decrypt with the private key</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>openssl rsautl -decrypt -in c.txt -inkey kf
+</pre></div>
+</div>
+<p>Enter pass phrase for <tt class="docutils literal"><span class="pre">kf</span></tt>:</p>
+<div class="highlight-bash"><div class="highlight"><pre>hello world
+</pre></div>
+</div>
+<p>We can also use the keys the other way around, encrypting with the private key and decrypting with the public one:</p>
+<p>These options are called <tt class="docutils literal"><span class="pre">-sign</span></tt> and <tt class="docutils literal"><span class="pre">-verify</span></tt></p>
+<div class="highlight-bash"><div class="highlight"><pre>openssl rsautl -sign -in p.txt -out c.txt -inkey kf
+openssl rsautl -verify -in c.txt -pubin -inkey kf.pem
+</pre></div>
+</div>
+<p><strong>Encrypting more data</strong></p>
+<p>With a larger message to encrypt, we have to be more sophisticated</p>
+<p><a class="reference external" href="http://www.czeskis.com/random/openssl-encrypt-file.html">http://www.czeskis.com/random/openssl-encrypt-file.html</a></p>
+<p>We generate 256 random bytes (the source does it in two steps, so that’s what we’ll do:</p>
+<div class="highlight-bash"><div class="highlight"><pre>openssl rand 128 &gt; k1.bin
+openssl rand 128 &gt; k2.bin
+cat k1.bin k2.bin &gt; k.bin
+</pre></div>
+</div>
+<p>To encrypt using AES with 256 bits and CBC mode:</p>
+<div class="highlight-bash"><div class="highlight"><pre>openssl enc -aes-256-cbc -salt -in p.txt -out c.txt -pass file:./k.bin
+</pre></div>
+</div>
+<p>To decrypt:</p>
+<div class="highlight-bash"><div class="highlight"><pre>openssl enc -d -aes-256-cbc -in c.txt -out m.txt -pass file:./key.bin
+</pre></div>
+</div>
+<p>In practice, use the RSA key to send this key to your cohort.</p>
+<p>You should also verify the digest (hash) of the data you send, or sign it with your private key (see above).  I have written quite a bit about the structure of RSA key files. See:</p>
+<p><a class="reference external" href="http://telliott99.blogspot.com/2011/08/dissecting-rsa-keys-in-python.html">http://telliott99.blogspot.com/2011/08/dissecting-rsa-keys-in-python.html</a></p>
+<p>There are four posts, and I explore the use of Python modules to do encryption.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="math.html"
+                        title="previous chapter">Mathematical Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="structure.html"
+                        title="next chapter">Taking keys apart</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/openssl.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="structure.html" title="Taking keys apart"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="math.html" title="Mathematical Introduction"
+             >previous</a> |</li>
+        <li><a href="index.html">MyCrypto 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Tom Elliott.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
