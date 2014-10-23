@@ -18,6 +18,7 @@ Contents:
    formats
    server
    bytes
+   base64
 
 
 Indices and tables
