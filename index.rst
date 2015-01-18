@@ -11,14 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
-   intro
-   math
-   openssl
-   structure
-   formats
-   server
-   bytes
-   base64
+   part1/index
+   part2/index
 
 
 Indices and tables

@@ -6,7 +6,9 @@ Working with bytes in Python
 
 In this section, I want to do a brief review of operations with data as bytes (rather than say, ASCII strings) in Python.
 
-The quick take on this is that ``int`` is a central type, so to convert from hexadecimal to binary or back again, we go through an ``int`` as an intermediary value.  For example, the function ``hex`` converts an integer to its hexadecimal equivalent.  The result has type ``str``:
+The quick take on this is that ``int`` is a central type, so to convert from hexadecimal to binary or back again, we go through an ``int`` as an intermediate
+
+For example, the function ``hex`` converts an integer to its hexadecimal equivalent.  The result has type ``str``:
 
 >>> h = hex(65)
 >>> type(h)
@@ -30,7 +32,9 @@ According to the docs, ``hex`` will take as input an integer of any size:
 >>> len(h)
 29618
 
-We can convert the hexadecimal string back to an integer by specifying the appropriate base (base 16) in a call to ``int``:
+They're not kidding.  Notice the result has ``'0x'`` only at the beginning of the string.
+
+We convert the hexadecimal string back to an integer in a call to ``int``, but we must specify the appropriate base (base 16):
 
 >>> h = hex(65537)
 >>> int(h,16)
@@ -48,7 +52,9 @@ In the same way, we can get the binary representation of an integer using ``bin`
 >>> type(b)
 <type 'str'>
 
-As before with ``hex``, the output from ``bin`` is a string.  Notice that the output loses leading ``0``'s.  If you want to specify the padding, there are a couple of options.  One way is to use ``zfill``
+As before with ``hex``, the output from ``bin`` is a string.  
+
+The output loses leading one or more leading ``0``.  If you want to specify the padding, there are a couple of options.  One easy way is to use ``zfill``
 
 >>> b
 '0b01000001'
@@ -67,19 +73,70 @@ Two other ways use fancy formatting
 '0b01000001'
 >>> 
 
-(To do:  explain these!)
+but I think that simpler is better if it is sufficient.
 
 Having generated a binary string, we can go back to the equivalent integer by specifying base 2 in a call to ``int``, and then go on to hexadecimal from there if desired.
 
 >>> b = bin(65)
+>>> b
+'0b1000001'
 >>> int(b,2)
 65
 >>> hex(int(b,2))
 '0x41'
 
-Note that both of these examples are string representations of hexadecimal and binary numbers.  They are not really binary data.  
+Both of these examples so far are strings, representations of hexadecimal and binary numbers.  They are not really binary data.
 
-Instead, an example binary data might be obtained by entering the following:
+A quick search turns up Python classes ``byte`` and ``bytearray``.  (Much more is available in Python 3.x, but we are just using 2.7).
+
+The first one is just an alias for ``str``:
+
+>>> L = [10, 32, 65]
+>>> data = bytes(L)
+>>> type(data)
+<type 'str'>
+>>> print data
+[10, 32, 65]
+>>> data
+'[10, 32, 65]'
+>>>
+
+A ``bytearray`` can do more:
+
+>>> L = [10, 32, 65]
+>>> ba = bytearray(L)
+>>> type(ba)
+<type 'bytearray'>
+>>> print ba
+
+
+>>> for e in ba:
+...     print e, type(e)
+... 
+10 <type 'int'>
+32 <type 'int'>
+65 <type 'int'>
+>>>
+
+An iterator over a ``bytearray`` returns ``int``.  But if we print a ``bytearray``, we get the string representation of the bytes, if possible, just as we did above.
+
+
+
+
+http://stackoverflow.com/questions/7396849/convert-binary-to-ascii-and-vice-versa-python
+
+
+
+
+
+
+
+
+
+
+
+
+Instead, an example of binary data might be obtained by entering the following:
 
 >>> d = '\xff'
 >>> d

@@ -45,7 +45,7 @@ Try to connect:
 
 Turn on remote login in System Prefs > Sharing (and turn off WiFi if you’re as paranoid as I am).
 
-.. image:: _static/sharing.png
+.. image:: /_static/sharing.png
     :scale: 50
 
 Then from a new Terminal window
@@ -161,7 +161,7 @@ The next step is to copy my public key to the server. Logon using the password m
 
 It’s quite straightforward now. I just do ``ssh`` from Terminal, and a window pops up asking for my passphrase for my private key, and the rest just works.
 
-.. image:: _static/passphrase.png
+.. image:: /_static/passphrase.png
     :scale: 30
 
 .. sourcecode:: bash
