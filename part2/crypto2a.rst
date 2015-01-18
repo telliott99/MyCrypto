@@ -410,6 +410,8 @@ Recall:
         return array.array('B',xL).tostring()
     
     def myCBC_encode(data,key,iv):
+        """Data comes in as bytes, leaves as bytes
+        """
         from Crypto.Cipher import AES
         xor = xor_block
         cp = AES.new(key, AES.MODE_ECB)

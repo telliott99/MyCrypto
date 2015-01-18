@@ -10,3 +10,4 @@ Contents:
    crypto1a
    crypto1b
    crypto2a
+   library
