@@ -43,6 +43,16 @@ def get_all_hex_bytes():
 def mean(L):
     return 1.0*sum(L)/len(L)
 
+def has_repeated_items(L):
+    return len(L) != len(set(L))
+    
+def bytes_to_hex(src):
+    """src can be bytes or a list of ints
+    """
+    L = [hex(ord(c))[2:] for c in src]
+    L = [h.zfill(2) for h in L]
+    return ''.join(L)
+
 def remove_newlines(ifn,ofn):
     data = load_data(ifn)
     data = ''.join(data.split('\n'))
@@ -188,3 +198,10 @@ def myCBC_decode(data,key,iv):
         next = cL.pop()
     return rL
 
+def cbc_detected(ct):
+    pL = list()
+    for item in chunks(ct,8):
+        h = bytes_to_hex(item)
+        pL.append(h)
+    reps = has_repeated_items(pL)
+    return reps
