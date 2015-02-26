@@ -592,7 +592,7 @@ Add to ``crypto.py``:
     from Crypto.Cipher import AES
     from Crypto import Random
     r = Random.new()
-    import random
+    from Crypto.Random import random
 
     def encrypt(msg,key,iv,cbc):
         if not cbc:
