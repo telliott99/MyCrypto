@@ -10,7 +10,8 @@ Contents:
    intro
    math
    openssl
-   structure
+   structure1
+   structure2
    formats
    server
    bytes
