@@ -1,0 +1,59 @@
+.. _n5:
+
+###########
+Set 1 No. 5
+###########
+
+**Implement repeating key XOR**
+
+    r1 =  "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d6"
+    r2 = "23d63343c2a26226324272765272a282b2f20430a652e2c652a"
+    r3 = "3124333a653e2b2027630c692b20283165286326302e27282f"
+    rslt = r1 + r2 + r3
+
+Put the above into ``5r.txt`` and put what is below into ``5.txt``.
+
+    src =  "Burning 'em, if you ain't quick and nimble\n"
+    src += "I go crazy when I hear a cymbal"
+
+.. sourcecode:: bash
+
+    > hexdump -C 5.txt
+    00000000  42 75 72 6e 69 6e 67 20  27 65 6d 2c 20 69 66 20  |Burning 'em, if |
+    00000010  79 6f 75 20 61 69 6e 27  74 20 71 75 69 63 6b 20  |you ain't quick |
+    00000020  61 6e 64 20 6e 69 6d 62  6c 65 0a 49 20 67 6f 20  |and nimble.I go |
+    00000030  63 72 61 7a 79 20 77 68  65 6e 20 49 20 68 65 61  |crazy when I hea|
+    00000040  72 20 61 20 63 79 6d 62  61 6c                    |r a cymbal|
+    0000004a
+    >
+
+``script.py``
+
+.. sourcecode:: python
+
+    import crypto as ut
+
+    data = ut.load_data('5.txt').strip()
+    result = ut.load_data('5r.txt')
+
+    kL = 'ICE' * (len(data)/3 + 1)
+    kL = [ord(c) for c in kL]
+
+    rL = list()
+
+    # loop through
+    for c,k in zip(data,kL):
+        h = hex(ord(c))[2:]
+        ct = ut.xor_hex_chars(h,hex(k))
+        ct = hex(ct)[2:]
+        if len(ct) == 1:  ct = '0' + ct
+        rL.append(ct)
+
+    s2 = ''.join(rL)
+    print s2 == result
+
+.. sourcecode:: bash
+
+    > python script.py 
+    True
+    >

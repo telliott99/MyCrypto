@@ -1,0 +1,213 @@
+.. _n12:
+
+############
+Set 2 No. 12
+############
+
+**Byte-at-a-time ECB decryption (Simple)**
+
+http://cryptopals.com/sets/2/challenges/12/
+
+We are given a string (in base64) and asked to decode it only in code.
+
+We are also asked to generate a random but consistent key for repeated use.  Then, varying the message, we will append the string from above, and encode it using ECB mode with the key.
+
+The first step is then to detect the block size by feeding the encryption function varying messages.  We recall from the previous problem that we will detect repeating ciphertext blocks when the message reaches a multiple of 2 times the block size.
+
+Add to ``crypto.py``:
+
+.. sourcecode:: python
+
+    def cbc_detected(ct):
+        pL = list()
+        for item in chunks(ct,8):
+            h = bytes_to_hex(item)
+            pL.append(h)
+        reps = has_repeated_items(pL)
+        return reps
+
+And here is my ``script.py``:
+
+.. sourcecode:: python
+
+    import array, base64
+    import crypto as ut
+    from Crypto.Cipher import AES
+    from Crypto import Random
+    r = Random.new()
+    
+    # random but consistent key
+    N = AES.block_size
+    key = r.read(N)
+    cp = AES.new(key, AES.MODE_ECB)
+    
+    # data has 3 lines of 60 each + 4 bytes more
+    data = ut.load_data('12.txt')
+    s = base64.b64decode(data)
+    
+    # if newlines are ignored we should have 
+    # 3*45 + 3 = 138, and we do
+    # print len(s)
+    
+    def weird_encode(msg):
+        msg += s
+        msg = str(ut.pad(msg,n=AES.block_size))
+        return cp.encrypt(msg)
+    
+    i = 0
+    while True:
+        i += 1
+        msg = b'A' * i
+        ct = weird_encode(msg)
+        if ut.cbc_detected(ct):
+            print i
+            break
+
+.. sourcecode:: bash
+
+    > python script.py 
+    32
+    >
+
+We deduce that the block size is half that, or 16.
+
+Now the trick is this:  if we make our message have 31 bytes (one byte short of a repeat), the 32nd byte will come from the unknown string.
+
+We vary the 16th byte of the input until we see a repeat in the ciphertext.  That byte is the first byte of the unknown string.
+
+Replace the code below ``weird_encode`` in ``script.py``:
+
+.. sourcecode:: python
+
+    def discover_byte(pos,master):
+        found = False
+        for j in range(256):
+            b = array.array('B',[j]).tostring()
+            msg = master[:]
+            msg[pos] = b
+            msg = str(bytearray(msg))
+            ct = weird_encode(msg)
+            if ut.cbc_detected(ct):
+                found = True
+                break
+        return found, b
+    
+    i = 15
+    master = ['A'] * (i + N)
+    print discover_byte(i,master)
+
+.. sourcecode:: bash
+
+    > python script.py 
+    (True, 'R')
+    >
+
+We can read 16 bytes in this way.  Now it seems unlikely that we would have control of the string, but perhaps so.  If we have that we can read the whole thing.
+
+.. sourcecode:: python
+
+    import array, base64
+    import crypto as ut
+    from Crypto.Cipher import AES
+    from Crypto import Random
+    r = Random.new()
+
+    # random but consistent key
+    N = AES.block_size
+    key = r.read(N)
+    cp = AES.new(key, AES.MODE_ECB)
+
+    # data has 3 lines of 60 each + 4 bytes more
+    data = ut.load_data('12.txt')
+    s = base64.b64decode(data)
+
+    # if newlines are ignored we should have 
+    # 3*45 + 3 = 138, and we do
+    # print len(s)
+
+    def weird_encode(msg,s):
+        msg += s
+        msg = str(ut.pad(msg,n=AES.block_size))
+        return cp.encrypt(msg)
+
+    def discover_byte(s, master):
+        n = 15  # position to match last entry
+        found = False
+        for i in range(256):
+            b = array.array('B',[i]).tostring()
+            msg = master[:]
+            msg[n] = b
+            msg = str(bytearray(msg))
+            ct = weird_encode(msg,s)
+            if ut.cbc_detected(ct):
+                found = True
+                break
+        return found, b
+
+    def read16(s):
+        master = ['A'] * N * 2
+        for i in range(N):
+            master.pop(0)
+            flag, b = discover_byte(s,master)
+            if not flag:
+                print 'error', i, ''.join(master)
+                start = N - (i+1)
+                stop = i + 3
+                master = master[start:stop]
+                break
+            else:
+                print 'found', str(i).rjust(2),
+                print b, ''.join(master)
+                master[15] = b
+        return ''.join(master)
+
+    pL = list()
+    while s:
+        result = read16(s)
+        pL.append(result)
+        s = s[16:]
+
+    print ''.join(pL)
+
+.. sourcecode:: bash
+
+    > python script.py 
+    found  0 R AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    found  1 o AAAAAAAAAAAAAARAAAAAAAAAAAAAAA
+    found  2 l AAAAAAAAAAAAARoAAAAAAAAAAAAAA
+    found  3 l AAAAAAAAAAAARolAAAAAAAAAAAAA
+    found  4 i AAAAAAAAAAARollAAAAAAAAAAAA
+    found  5 n AAAAAAAAAARolliAAAAAAAAAAA
+    found  6 ' AAAAAAAAARollinAAAAAAAAAA
+    found  7   AAAAAAAARollin'AAAAAAAAA
+    found  8 i AAAAAAARollin' AAAAAAAA
+    found  9 n AAAAAARollin' iAAAAAAA
+    found 10   AAAAARollin' inAAAAAA
+    found 11 m AAAARollin' in AAAAA
+    found 12 y AAARollin' in mAAAA
+    found 13   AARollin' in myAAA
+    found 14 5 ARollin' in my AA
+    found 15 . Rollin' in my 5A
+    ..
+    found  0   AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    found  1 d AAAAAAAAAAAAAA AAAAAAAAAAAAAAA
+    found  2 r AAAAAAAAAAAAA dAAAAAAAAAAAAAA
+    found  3 o AAAAAAAAAAAA drAAAAAAAAAAAAA
+    found  4 v AAAAAAAAAAA droAAAAAAAAAAAA
+    found  5 e AAAAAAAAAA drovAAAAAAAAAAA
+    found  6   AAAAAAAAA droveAAAAAAAAAA
+    found  7 b AAAAAAAA drove AAAAAAAAA
+    found  8 y AAAAAAA drove bAAAAAAAA
+    found  9 
+    AAAAAA drove byAAAAAAA
+    found 10  AAAAA drove by
+    AAAAAA
+    error 11 AAAA drove by
+    AAAAA
+    Rollin' in my 5.0
+    With my rag-top down so my hair can blow
+    The girlies on standby waving just to say hi
+    Did you stop? No, I just drove by
+
+    >
+

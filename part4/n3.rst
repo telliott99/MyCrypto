@@ -1,0 +1,191 @@
+.. _n3:
+
+###########
+Set 1 No. 3
+###########
+
+
+**Single-byte XOR cipher**
+
+"The hex encoded string __ has been XOR'd against 
+a single character.  Find the key, decrypt .."
+
+``1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736``
+
+Put the data in a file:  ``in.txt``
+
+I puzzled over "what does that mean:  "against a single character"?  A bit, a byte, one of these string characters?  And it turns out that the correct answer is right there in the title of the challenge
+
+It's a single byte at a time.  So here is my code from last time, in ``crypto.py``:
+
+.. sourcecode:: python
+
+    def xor_hex_chars(c1,c2):
+        """Input two hex characters as strings
+        return an integer result from XOR
+        int will deal properly with multiple bytes
+        and also ignore leading '0x'
+        """
+        x = int(c1,16)
+        y = int(c2,16)
+        return x ^ y
+        
+.. sourcecode:: python
+
+    import sys
+    import crypto as ut
+
+    s = ut.load_data(sys.argv[1]).strip()
+    dg = "0123456789abcdef"
+    kL = [k1 + k2 for k1 in dg for k2 in dg]
+    for k in kL:
+        L = list()
+        for i in range(0,len(s),2):
+            L.append(ut.xor_hex_chars(s[i:i+2],k))
+        s2 = ''.join([chr(i) for i in L])
+        print k, s2
+
+.. sourcecode:: python
+
+    00 7316?x+x413=x9x(7-6<x7>x:9;76
+
+Scanning down:
+
+    58 Cooking MC's like a pound of bacon
+    78 cOOKINGmcSLIKEAPOUNDOFBACON
+
+It is worth pointing out that printing raw bytes as string characters swallows a number of bytes that aren't printable.  The very first byte of the input is ``1b`` and the first key is ``00``.  So what happened to the output, which should be ``1b``?
+
+.. sourcecode:: bash
+
+    >>> c = '1b'
+    >>> int(c,16)
+    27
+    >>> chr(27)
+    '\x1b'
+    >>> ''.join([chr(27)])
+    '\x1b'
+    >>> print '\x1b'
+    
+    >>
+    >>>
+
+Notice the newline, and what happened to the prompt!
+
+    >>> print '*' + '\x1b' + '*'
+    *
+    >> 
+    >>>
+
+ASCII 27 is ``ESCAPE``.  It is not a printable character.  In the XOR with ``00``, the first character that can be printed comes from the second byte:
+
+    >>> chr(int('37',16))
+    '7'
+    >>>
+
+We can't solve the problems to come scanning by eye for something that looks like English.  We will need to write an evaluation function.  One idea is to analyze character frequencies.  I copy-pasted the frequencies given in wikipedia:
+
+http://en.wikipedia.org/wiki/Letter_frequency
+
+Here is the data, cleaned up a bit:
+
+.. sourcecode:: python
+
+    english_char_freqs = '''
+    a	8.167   b	1.492   c	2.782   d	4.253   e	12.702
+    f	2.228   g	2.015   h	6.094   i	6.966   j	0.153
+    k	0.772   l	4.025   m	2.406   n	6.749   o	7.507
+    p	1.929   q	0.095   r	5.987   s	6.327   t	9.056
+    u	2.758   v	0.978   w	2.360   x	0.150   y	1.974
+    z	0.074
+    '''
+    
+
+Here is a first stab at it.  We put the data into ``crypto.py`` as a multi-line string variable ``english_char_freqs`` .
+
+.. sourcecode:: python
+
+    def get_english_char_freq_dict():
+        data = english_char_freqs.strip().split()
+        D = dict()
+        while data:
+            char, percent = data.pop(0), data.pop(0)
+            D[char] = float(percent)
+        for k in D.keys():
+            u = k.upper()
+            D[u] = D[k]
+        return D
+
+Then we can use the frequencies (actually, percentages) to build a simple scoring function:
+
+``crypto.py``:
+
+.. sourcecode:: python
+
+    def score(L,penalty=10):
+        """Input L is bytes (as int)
+        score w/penalty for non-standard, plus English freqs
+        """
+        D = get_english_char_freq_dict()
+        score = 0
+        for i in L:
+            if i > 127:
+                score -= penalty
+            elif i < 32 and not (i == 10 or i == 13):
+                score += -5
+            else:
+                # ignore punctuation
+                c = chr(i)
+                if c in D:
+                    score +=(D[c])
+        return score*1.0/len(L)
+
+Now write a function to test all keys on input data as ints:
+
+``crypto.py``:
+
+.. sourcecode:: python
+
+    def test_all_keys(data,kL=range(256),n=5):
+        rL = list()
+        for k in kL:
+            L = [k ^ i for i in data]
+            sc = ut.score(L)
+            s = ''.join([chr(i) for i in L])
+            tmp = [sc,k,s,L]
+            rL.append(tmp)
+        rL.sort(reverse=True)
+        return rL[:n]
+
+
+Let's change things around a bit to load data as hex strings and then convert to bytes on the fly..
+
+``script.py``:
+
+.. sourcecode:: python
+
+    import crypto as ut
+    s = ut.load_data('in.txt')
+    data = bytearray.fromhex(s)
+    data = [int(b) for b in data]
+    rL = ut.test_all_keys(data)
+    for sc, k, s, L in rL:
+        print "%3.2f" % sc, k, s
+
+.. sourcecode:: bash
+
+    > python script.py 
+    4.52 114 iEEACDM
+    Yi
+    FCAO
+    K
+    ZE_DN
+    EL
+    HKIED
+    4.52 82 Ieeacdm*GI-y*fcao*k*zedn*el*hkied
+    4.20 94 Eiimoha&KE!u&jomc&g&vishb&i`&dgeih
+    4.06 88 Cooking MC's like a pound of bacon
+    3.93 95 Dhhlni`'JD t'knlb'f'whric'ha'efdhi
+    >
+
+This is not terrible, but it clearly could use some improvement, since the correct text is the fourth item.

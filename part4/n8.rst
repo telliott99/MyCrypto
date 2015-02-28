@@ -1,0 +1,69 @@
+.. _n8:
+
+###########
+Set 1 No. 8
+###########
+
+**Detect AES in ECB mode**
+
+Identify a ciphertext that has been encoded with ECB based on this:
+
+    Remember that the problem with ECB is that it is stateless and deterministic; the same 16 byte plaintext block will always produce the same 16 byte ciphertext.
+    
+So I will just slide through each one looking for repeated 16-byte blocks.  First, code to break up into "chunks":
+
+``crypto.py``:
+
+.. sourcecode:: python
+
+    def chunks(s,SZ=16):
+        rL = list()
+        while s:
+            rL.append(s[:SZ])
+            s = s[SZ:]
+        return rL
+
+``script.py``:
+
+.. sourcecode:: python
+
+    import crypto as ut
+    data = ut.load_data('8.txt')
+    data = data.strip().split('\n')
+
+    for i,line in enumerate(data):
+        line = line.strip()
+        L = ut.chunks(line)
+        if len(L) != len(set(L)):
+            for e in L:
+                print e, L.count(e)
+            print i
+        
+
+.. sourcecode:: bash
+
+    > python script.py 
+    d880619740a8a19b 1
+    7840a8a31c810a3d 1
+    08649af70dc06f4f 4
+    d5d2d69c744cd283 4
+    e2dd052f6b641dbf 1
+    9d11b0348542bb57 1
+    08649af70dc06f4f 4
+    d5d2d69c744cd283 4
+    9475c9dfdbc1d465 1
+    97949d9c7e82bf5a 1
+    08649af70dc06f4f 4
+    d5d2d69c744cd283 4
+    97a93eab8d6aecd5 1
+    66489154789a6b03 1
+    08649af70dc06f4f 4
+    d5d2d69c744cd283 4
+    d403180c98c8f6db 1
+    1f2a3f9c4040deb0 1
+    ab51b29933f2c123 1
+    c58386b06fba186a 1
+    132
+    >
+
+Looks like a good candidate!

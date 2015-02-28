@@ -1,0 +1,153 @@
+.. _n1:
+
+###########
+Set 1 No. 1
+###########
+
+**Convert hex to base 64**
+
+http://cryptopals.com/sets/1/
+
+We are given some hex data (as a single string, broken here in two)    
+
+    ``"49276d206b696c6c696e6720796f757220627261696e206c``
+    ``696b65206120706f69736f6e6f7573206d757368726f6f6d"``
+
+and told to convert it to base64.  
+
+Recall the algorithm to encode in base 64 (as exercised with the first 3 bytes of input for this problem):
+
+    4    9    2    7    6    d
+    0100 1001 0010 0111 0110 1101
+    01001001 00100111 01101101
+
+    010010 010010 011101 101101
+    18     18     29     45
+    S      S
+
+We regroup chunks of 3 bytes of input data (24 bits) into 4 groups of 6 bits each.  
+
+There is a total of :math:`2^8` or 64 possible values, each of which is assigned in order to one of ``A..Za..z0..9+/`` .  The output is 4 characters (which when encoded as ASCII is 4 bytes).  There 33% increase in message length but it confers the advantage that bytes which are not transferable across networks (like control characters) or not allowed in printable text, can still be encoded.
+
+For the last part of the decoding, consider 4 numbers:
+
+    >>> L = [18, 18, 29, 45]
+    >>> s = 'abcdefghijklmnopqrstuvwxyz'
+    >>> kL = s.upper() + s
+    >>> N = len(kL)
+    >>> D = dict(zip(range(N),kL))
+    >>> ''.join([D[x] for x in L])
+    'SSdt'
+    >>>
+
+The encoding step is fairly easy.  We might use my code (developed elsewhere), but it is better to use Python's base64 module (here, with the wikipedia example):
+
+    >>> import base64
+    >>> base64.b64encode("Man")
+    'TWFu'
+    >>>
+
+Or we can just do it from the command line using ``openssl``.  If the file ``x`` contains the data:
+
+.. sourcecode:: bash
+
+    > openssl enc -base64 -in x
+    SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t
+    >
+
+Getting the input, a long string of hex, into a file as actual bytes is more challenging.  I found ``printf`` from bash, which will write bytes if each one is marked with ``\x``:
+
+.. sourcecode:: bash
+
+    > printf "\x49\x27" | hexdump
+    0000000 49 27                                          
+    0000002
+    >
+
+but I don't have the extra "\x" for each byte.  I'm sure ``awk`` could handle it but if we go there we might as well use Python. 
+
+I did not find a command line one-liner that will work without some magic scripting.
+
+I discovered the Python 2.x class ``bytearray``.  It has ``bytearray.fromhex()`` which takes a hex string.  Paste the data above (as one continuous string) into the variable ``s``, or get it directly from the page listing the problem
+
+    >>> s[:10]
+    '49276d206b'
+    >>> len(s)
+    96
+    >>> b = bytearray.fromhex(s)
+    >>> FH = open('x','wb')
+    >>> FH.write(b)
+    >>> FH.close()
+    >>>
+
+.. sourcecode:: bash
+
+    > hexdump -C x
+    00000000  49 27 6d 20 6b 69 6c 6c  69 6e 67 20 79 6f 75 72  |I'm killing your|
+    00000010  20 62 72 61 69 6e 20 6c  69 6b 65 20 61 20 70 6f  | brain like a po|
+    00000020  69 73 6f 6e 6f 75 73 20  6d 75 73 68 72 6f 6f 6d  |isonous mushroom|
+    00000030
+    >
+
+We note the amusing message when this is interpreted as ASCII text, and do:
+
+.. sourcecode:: bash
+
+    > openssl enc -base64 -in x
+    SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t
+    >
+
+This matches the output given in the problem.  
+
+For future use, I started writing a module ``crypto.py`` and add the function ``write_bytes``:
+
+.. sourcecode:: python
+
+    def write_hex_bytes(fn, ofn):
+        """Input text file "fn" with hex string
+        write as bytes to "ofn"
+        """
+        data = load_data(fn)
+        b = bytearray.fromhex(data)
+        FH = open(ofn,'wb')
+        FH.write(b)
+        FH.close()
+
+With the string data in the file 'x.txt', we just do:
+
+    >>> import crypto as ut
+    >>> ut.write_hex_bytes('x.txt','x')
+    >>>
+
+The docs for ``bytearray`` in Python 2.7 don't mention the ``fromhex()`` constructor although it can be found in the 3.1 docs
+
+https://docs.python.org/3.1/library/stdtypes.html#bytes-and-byte-array-methods
+
+What the Python 2 docs do say is:
+
+https://docs.python.org/2/library/functions.html#bytearray
+
+    class bytearray([source[, encoding[, errors]]])
+    Return a new array of bytes. The bytearray class is a mutable sequence \
+    of integers in the range 0 <= x < 256.
+    
+The default constructor does not do what we want:
+
+    >>> s = '49276d206b'
+    >>> b = bytearray(s)
+    >>> b[0]
+    52
+    >>> ord('4')
+    52
+    >>>
+
+The input data has been interpreted as a string of characters, not hex.
+
+An older solution (which I also didn't know before) is to use the ``str`` method ``decode``:
+
+    >>> s = "deadbeef"
+    >>> s.decode("hex")
+    '\xde\xad\xbe\xef'
+    >>>
+
+The docs for ``str.decode`` do not really describe this use.

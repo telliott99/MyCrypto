@@ -1,0 +1,83 @@
+.. _n2:
+
+###########
+Set 1 No. 2
+###########
+
+
+**Fixed XOR**
+
+This problem is an introduction to XOR, "exclusive or".  The four possible cases:
+
+    in1:  0 0 1 1
+    in2:  0 1 0 1
+    out:  0 1 1 0
+    
+A specific example:
+
+    in1:  0 0 0 1
+    in2:  0 1 1 0
+    out:  0 1 1 1
+
+We will work in Python, again.  The crucial insight for me was that xor (``^``) works on integers.
+
+    >>> 1 ^ 6
+    7
+
+The interpretation for this output is that:
+
+    hex 1 = bin 0001
+    hex 6 = bin 0110
+    XOR   =     0111 = 7
+
+The problem we are given is to take two strings of hex data:
+
+    s1 = "1c0111001f010100061a024b53535009181c"
+    s2 = "686974207468652062756c6c277320657965"
+
+and produce:
+
+    746865206b696420646f6e277420706c6179
+
+The Python xor ``^`` can work on larger ints, but there's no real advantage.
+
+``crypto.py``:
+
+.. sourcecode:: python
+
+    def xor_hex_chars(c1,c2):
+        """Input two hex characters as strings
+        return an integer result from XOR
+        """
+        x = int(c1,16)
+        y = int(c2,16)
+        return x ^ y
+
+Code to paste into the interpreter:
+
+.. sourcecode:: python
+
+    import crypto as ut
+    s1 = "1c0111001f010100061a024b53535009181c"
+    s2 = "686974207468652062756c6c277320657965"
+    s3 = "746865206b696420646f6e277420706c6179"
+    xor = ut.xor_hex_chars
+    L = zip(s1,s2)
+    result = [xor(x,y) for x,y in L]
+    s4 = ''.join([hex(n)[2:] for n in result])
+    assert s3 == s4
+    
+Result:
+
+    >>> import crypto as ut
+    >>> s1 = "1c0111001f010100061a024b53535009181c"
+    >>> s2 = "686974207468652062756c6c277320657965"
+    >>> s3 = "746865206b696420646f6e277420706c6179"
+    >>> xor = ut.xor_hex_chars
+    >>> L = zip(s1,s2)
+    >>> result = [xor(x,y) for x,y in L]
+    >>> s4 = ''.join([hex(n)[2:] for n in result])
+    >>> assert s3 == s4
+    >>> 
+    >>>
+

@@ -1,0 +1,292 @@
+.. _n9:
+
+############
+Set 2 No. 10
+############
+
+**Implement CBC**
+
+http://cryptopals.com/sets/2/challenges/10/
+
+I found two libraries for cryptography for Python.  One is here:
+
+https://cryptography.io/en/latest/
+
+It can be obtained with ``pip install cryptography`` and
+
+    >>> from cryptography.fernet import Fernet
+    
+The other one is here:
+
+https://pypi.python.org/pypi/pycrypto
+
+I'm not sure how I installed it.  :)  But I have it:
+
+from Crypto.Cipher import AES
+from Crypto import Random
+random = Random.new()
+
+    >>> from Crypto.Cipher import AES
+    >>> from Crypto import Random
+    >>> random = Random.new()
+    
+
+Basic usage in ECB mode does not use an initialization vector, but we will need this later:
+
+iv = random.read(AES.block_size)
+iv
+
+    >>> iv = random.read(AES.block_size)
+    >>> iv
+    '\xd6\xee\x8c0\xde\x10\x07\xa6\x87\x1d\x82*\x86i\xd8\xf0'
+    >>> 
+    >>> AES.block_size
+    16
+    >>>
+
+msg = "Attack at dawn.."
+key = b'YELLOW SUBMARINE'
+cp = AES.new(key, AES.MODE_ECB)
+ct = cp.encrypt(msg)
+ct
+
+    >>> 
+    >>> key = b'YELLOW SUBMARINE'
+    >>> 
+    >>> cp = AES.new(key, AES.MODE_ECB)
+    >>> 
+    >>> ct = cp.encrypt(msg)
+    >>> ct
+    'J\x0f\xe7\x11x\xb5\x04\xad$<\xf5\xdd}\x16\xeb\xf8'
+    >>>
+
+
+p = cp.decrypt(ct)
+print p
+
+    >>> p = cp.decrypt(ct)
+    >>> print p
+    Attack at dawn..
+    >>>
+
+All we need is the key.  And it's deterministic.  If we make a new instance
+
+    >>> cp2 = AES.new(key, AES.MODE_ECB)
+    >>> cp2.encrypt(msg)
+    'J\x0f\xe7\x11x\xb5\x04\xad$<\xf5\xdd}\x16\xeb\xf8'
+    >>>
+    
+The ciphertext is the same.  My original example had the initialization vector:
+
+    >>> cp = AES.new(k, AES.MODE_ECB, iv)
+
+But it is neither required nor used for the encryption.
+
+For CBC mode, we use a single key as in ECB, and encrypt the message in blocks of 16 bytes.  The trick is to XOR the message block and the iv for the first step before encrypting, then XOR the message block and the previous ciphertext for each subsequent round.
+
+Here is a new function to put in ``crypto.py``:
+
+    def xor_block(ba1,ba2):
+        """Data comes in as bytes, leaves as bytes
+        """
+        iL1 = [ord(c) for c in ba1]
+        iL2 = [ord(c) for c in ba2]
+        xL = [x1 ^ x2 for x1,x2 in zip(iL1,iL2)]
+        return array.array('B',xL).tostring()
+
+``script.py``:
+
+.. sourcecode:: python
+
+    import crypto as ut
+    xor = ut.xor_block
+
+    msg = b'Attack at dawn..'
+    key = b'YELLOW SUBMARINE'
+
+    ba = xor(msg,key)
+    print `ba`
+
+    print `xor(key,ba)`
+    print `xor(msg,ba)`
+
+.. sourcecode:: bash
+
+    > python script.py 
+    "\x1818-,<\x002!b) %'`k"
+    'Attack at dawn..'
+    'YELLOW SUBMARINE'
+    >
+
+
+XOR msg block + iv for first step
+then encrypt against key
+
+Recall:
+
+``crypto.py``:
+
+.. sourcecode:: python
+
+    def pad(s,n=8):
+        L = ['\x00','\x01','\x02','\x03',
+             '\x04','\x05','\x06','\x07',
+             '\x08','\x09','\x0a','\x0b',
+             '\x0c','\x0d','\x0e','\x0f' ]
+        extra = len(s) % n
+        if not extra:
+            return s
+        diff = n - extra
+        return bytearray(s) + diff * L[diff]
+    
+    def xor_block(ba1,ba2):
+        import array
+        """Data comes in as bytes, leaves as bytes
+        """
+        iL1 = [ord(c) for c in ba1]
+        iL2 = [ord(c) for c in ba2]
+        xL = [x1 ^ x2 for x1,x2 in zip(iL1,iL2)]
+        return array.array('B',xL).tostring()
+    
+    def myCBC_encode(data,key,iv):
+        """Data comes in as bytes, leaves as bytes
+        """
+        from Crypto.Cipher import AES
+        xor = xor_block
+        cp = AES.new(key, AES.MODE_ECB)
+
+        cL = [iv]
+        tL = data[:]
+        while tL:
+            next = tL.pop(0)
+            x = xor(next,cL[-1])
+            ct = cp.encrypt(x)
+            cL.append(ct)
+        return cL[1:]
+    
+    
+``script.py``:
+
+.. sourcecode:: bash
+
+    import crypto as ut
+    from Crypto.Cipher import AES
+
+    key = b'YELLOW SUBMARINE'
+    msg = b'Attack at dawn, await my signal'
+    msg = ut.pad(msg,n=16)
+
+    iv = b'\x00\x01'*8
+    cL = [iv]
+    L = ut.chunks(msg)
+
+    # chunks converts to bytearray
+    L = [str(ch) for ch in L]
+    for e in L:
+        print `e`
+    #========================================
+
+    ct = ut.myCBC_encode(L,key,iv)
+    ct = ''.join(ct)
+    print `ct`
+
+    cp2 = AES.new(key, AES.MODE_CBC, iv)
+    ct2 = cp2.encrypt(str(msg))
+    print `ct2`
+    
+    
+
+    > python script.py 
+    'Attack at dawn, '
+    'await my signal\x01'
+    'k\xbd.\x8d[o\x01d\x98\x0fc\x11,\xbb;\xf5\x1a\x94J\xe1;\n0t\x16oai\xbbE\xedI'
+    'k\xbd.\x8d[o\x01d\x98\x0fc\x11,\xbb;\xf5\x1a\x94J\xe1;\n0t\x16oai\xbbE\xedI'
+    >
+
+Looks like we have implemented CBC mode for encryption!
+
+How about decryption?  We will start with the last block, decrypt in ECB mode, and then?  What to XOR with?  With the previous block!  For the first block, XOR with the initialization vector ``iv``.
+
+.. sourcecode:: python
+
+    def myCBC_decode(data,key,iv):
+        from Crypto.Cipher import AES
+        xor = xor_block
+        cp = AES.new(key, AES.MODE_ECB)
+    
+        cL = [iv] + data[:]
+        rL = list()
+        next = cL.pop()  # from the end
+        while cL:
+            x = cp.decrypt(next)
+            pt = xor(x, cL[-1])
+            rL.insert(0,pt)
+            next = cL.pop()
+        return rL
+
+and add this to ``script.py``:
+
+.. sourcecode:: python
+
+    L = ut.chunks(ct)
+    L = [str(ch) for ch in L]
+    
+    pt = ut.myCBC_decode(L,key,iv)
+    print ''.join(pt)
+    
+and now we get:
+
+.. sourcecode:: bash
+
+    > python script.py 
+    'Attack at dawn, '
+    'await my signal\x01'
+    'k\xbd.\x8d[o\x01d\x98\x0fc\x11,\xbb;\xf5\x1a\x94J\xe1;\n0t\x16oai\xbbE\xedI'
+    'k\xbd.\x8d[o\x01d\x98\x0fc\x11,\xbb;\xf5\x1a\x94J\xe1;\n0t\x16oai\xbbE\xedI'
+    Attack at dawn, await my signal
+    >
+
+For the actual problem, convert the data to a binary file:
+
+.. sourcecode:: bash
+
+    > openssl enc -base64 -d -in 10.txt -out 10.bin
+    > hexdump -C -n 32 10.bin
+    00000000  09 12 30 aa de 3e b3 30  db aa 43 58 f8 8d 2a 6c  |..0..>.0..CX..*l|
+    00000010  d5 cf 83 55 cb 68 23 39  7a d4 39 06 df 43 44 55  |...U.h#9z.9..CDU|
+    00000020
+    >
+
+``script.py``:
+
+.. sourcecode:: python
+
+    import array
+    import crypto as ut
+    from Crypto.Cipher import AES
+
+    key = b'YELLOW SUBMARINE'
+    msg = b'Attack at dawn, await my signal'
+    msg = ut.pad(msg,n=16)
+    
+    data = ut.load_binary_data('10.bin')
+    
+    L = array.array('B',data).tostring()
+    L = ut.chunks(L)
+    
+    iv = '\x00'*16
+    pt = ut.myCBC_decode(L,key,iv)
+    print ''.join(pt)
+
+.. sourcecode:: bash
+
+    > python script.py 
+    I'm back and I'm ringin' the bell 
+    A rockin' on the mike while the fly girls yell 
+    In ecstasy in the back of me 
+    Well that's my DJ Deshay cuttin' all them Z's 
+    Hittin' hard and the girlies goin' crazy 
+    Vanilla's on the mike, man I'm not lazy. 
+    ..
+
+Looks like we did it.
