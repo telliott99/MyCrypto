@@ -1,4 +1,4 @@
-
+Something about ENIGMA!!
 
 
 
@@ -60,7 +60,7 @@ In addition to these four there is also an XML format.
 **Interconversion**
 
 To summarize the above, we have (A) Open SSH ``ssh-rsa``, (B) X.509/PKCS#1 with "BEGIN PUBLIC KEY" ``openssl``, (C) PKCS#8 with "BEGIN RSA PUBLIC KEY" RSA, and (D) binary format, called DER.
-￼￼
+
 Both B and C are PEM format, so this does not distinguish them.
 
 Programs to generate keys include:
