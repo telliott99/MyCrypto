@@ -167,7 +167,7 @@ We can write them to disk just like any data:
 >>> FH.close()
 >>>
 
-And from the shell:
+And from the command line:
 
 .. sourcecode:: bash
 
@@ -232,3 +232,42 @@ Encrypt and decrypt
     > openssl rsautl -decrypt -in c.txt -inkey kf
     hello world
     >
+
+**Reading key files with the rsa module**
+
+.. sourcecode:: bash
+
+    > ssh-keygen -b 1024 -t rsa -f ./kf -N "" -C "te"
+    > openssl rsa -in kf -pubout > kf.pem
+    writing RSA key
+    >
+
+>>> rsa
+>>> pub = rsa.PublicKey.load_pkcs1('kf.pub')
+>>> pub = rsa.PublicKey.load_pkcs1('kf.pem')
+
+Both of these calls fail, as is.  The manual:
+
+    load_pkcs1(keyfile, format='PEM')
+    Loads a key in PKCS#1 DER or PEM format.
+
+    Parameters:	
+    keyfile – contents of a DER- or PEM-encoded file that contains the public key.
+    format – the format of the file to load; ‘PEM’ or ‘DER’
+    Returns:	
+    a PublicKey object
+
+According to the interoperability page of the manual, what we need to do is:
+
+    The standard PKCS#8 is widely used, and more complex than the PKCS#1 v1.5 supported by Python-RSA. In order to extract a key from the PKCS#8 format you need an external tool such as OpenSSL
+
+.. sourcecode:: bash
+
+    > openssl rsa -in kf -out kf.pkcs1.pem
+    writing RSA key
+    > pyrsa-priv2pub -i kf.pkcs1.pem -o kf.pub.pkcs1.pem
+    Reading private key from kf.pkcs1.pem in PEM format
+    Writing public key to kf.pub.pkcs1.pem in PEM format
+    >
+
+More to do here, still not working

@@ -6,4 +6,4 @@ Library of routines
 
 ``crypto.py``:
 
-.. literalinclude:: crypto.py
+.. literalinclude:: /_static/crypto.py
