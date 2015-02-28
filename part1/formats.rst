@@ -339,3 +339,102 @@ It is PKCS #8, according to
 
 http://www.cryptopp.com/wiki/Keys_and_Formats 
 
+**private key format**
+
+Finally, we can also get some idea about private key structure using the Python code we had above:
+
+``x.py``:
+
+.. sourcecode:: python
+
+    import base64
+
+    def f(input):
+        data = base64.b64decode(input)
+        print `data`
+        L = [ord(b) for b in data]
+        print L
+        for i in range(0,len(L),32):
+            print ' '.join([hex(h)[2:].zfill(2) for h in L[i:i+32]])
+
+First, on the command line
+
+.. sourcecode:: bash
+
+    > cat kf
+    -----BEGIN RSA PRIVATE KEY-----
+    MIICXwIBAAKBgQDXqfCjR00CtE1cCxPrtyl1wUgGj80oB3P/a42CouLUsmVD9oj4
+    vAopoKurel4XgNbCVV7QfEnukhiqB/Sf7YaJPY9yVKjuCN2J5mgxaEV3hLrrU2zT
+    E1gh/tA+sJDotsgapac9wRTIyqhGzMh+8deCa/CjOpjqQ/oBOpelU1UIvwIDAQAB
+    AoGBANMznPL6H6P3WQ871g1weYzVdSjf6SU7b1EDTjlSNVvhPSS6qlcVJ8qui5BK
+    LR1NUoRMQKdiILEfqEHTurBoV+gAwkme9XPq6P2V6A85KXsE7DQJqR9RcstwOj9W
+    XesdAF23jdORL4M4cN0G+2hi7iiGE4TF3jmCEC+fjf+rR+fhAkEA8xfHBq9JcJtV
+    Cu/9PNs6agbYus5vxp7QKzF5PKjPxLCILArEO6QgELRZHFLFslJVe6igZBDeadp8
+    m9iExT78DwJBAOMdVcoZjqOvyV2fdM1KVhBpYETf+Xf+Oq0QADVIYA+VL6B9uJ9s
+    GjOe08h+gFb3vNvPnsN0Ebz9oIzWuDR8OFECQQCvrHI/KXOYNhjaI57NWNy4/KOp
+    NEBguCpV3JXxuUkUqkJuGYXAWBZ4G+z94+9Ms+VkzPLD/dDNjIBam7kvVhoPAkEA
+    ra82d2saGXYKkc2rHoAV11Eu7R04BBrpNoaBEj56MBCQLrVWppyeYRG6tp5/eYLV
+    7GgX6zNtiVGRIYPntUO2MQJBAJBEN4VgKAtVZ8ISmU7qWAk3yDSQ2mPNJFhLLhdV
+    YGU1dNjAEKIsiagGhJxvxW46ojs1IwDUTpMWj0BHljb4T+g=
+    -----END RSA PRIVATE KEY-----
+    >
+
+Then copy and paste the data into the Python interpreter and do:
+
+>>> s = ''.join([c for c in s if not c in ' \n'])
+>>> s
+'MIICXwIBAAKBgQDXqfCjR00CtE1cCxPrtyl1wUgGj80oB3P/a42CouLUsmVD9oj4vAopoKurel4XgNbCVV7QfEnukhiqB/Sf7YaJPY9yVKjuCN2J5mgxaEV3hLrrU2zTE1gh/tA+sJDotsgapac9wRTIyqhGzMh+8deCa/CjOpjqQ/oBOpelU1UIvwIDAQABAoGBANMznPL6H6P3WQ871g1weYzVdSjf6SU7b1EDTjlSNVvhPSS6qlcVJ8qui5BKLR1NUoRMQKdiILEfqEHTurBoV+gAwkme9XPq6P2V6A85KXsE7DQJqR9RcstwOj9WXesdAF23jdORL4M4cN0G+2hi7iiGE4TF3jmCEC+fjf+rR+fhAkEA8xfHBq9JcJtVCu/9PNs6agbYus5vxp7QKzF5PKjPxLCILArEO6QgELRZHFLFslJVe6igZBDeadp8m9iExT78DwJBAOMdVcoZjqOvyV2fdM1KVhBpYETf+Xf+Oq0QADVIYA+VL6B9uJ9sGjOe08h+gFb3vNvPnsN0Ebz9oIzWuDR8OFECQQCvrHI/KXOYNhjaI57NWNy4/KOpNEBguCpV3JXxuUkUqkJuGYXAWBZ4G+z94+9Ms+VkzPLD/dDNjIBam7kvVhoPAkEAra82d2saGXYKkc2rHoAV11Eu7R04BBrpNoaBEj56MBCQLrVWppyeYRG6tp5/eYLV7GgX6zNtiVGRIYPntUO2MQJBAJBEN4VgKAtVZ8ISmU7qWAk3yDSQ2mPNJFhLLhdVYGU1dNjAEKIsiagGhJxvxW46ojs1IwDUTpMWj0BHljb4T+g='
+>>>
+
+
+>>> import x
+>>> x.f(s)
+"0\x82..
+30 82 02 5f 02 01 00 02 81 81 00 d7 a9 f0 a3 47 4d 02 b4 4d 5c 0b 13 eb b7 29 75 c1 48 06 8f cd
+28 07 73 ff 6b 8d 82 a2 e2 d4 b2 65 43 f6 88 f8 bc 0a 29 a0 ab ab 7a 5e 17 80 d6 c2 55 5e d0 7c
+49 ee 92 18 aa 07 f4 9f ed 86 89 3d 8f 72 54 a8 ee 08 dd 89 e6 68 31 68 45 77 84 ba eb 53 6c d3
+13 58 21 fe d0 3e b0 90 e8 b6 c8 1a a5 a7 3d c1 14 c8 ca a8 46 cc c8 7e f1 d7 82 6b f0 a3 3a 98
+ea 43 fa 01 3a 97 a5 53 55 08 bf 02 03 01 00 01 02 81 81 00 d3 33 9c f2 fa 1f a3 f7 59 0f 3b d6
+0d 70 79 8c d5 75 28 df e9 25 3b 6f 51 03 4e 39 52 35 5b e1 3d 24 ba aa 57 15 27 ca ae 8b 90 4a
+2d 1d 4d 52 84 4c 40 a7 62 20 b1 1f a8 41 d3 ba b0 68 57 e8 00 c2 49 9e f5 73 ea e8 fd 95 e8 0f
+39 29 7b 04 ec 34 09 a9 1f 51 72 cb 70 3a 3f 56 5d eb 1d 00 5d b7 8d d3 91 2f 83 38 70 dd 06 fb
+68 62 ee 28 86 13 84 c5 de 39 82 10 2f 9f 8d ff ab 47 e7 e1 02 41 00 f3 17 c7 06 af 49 70 9b 55
+0a ef fd 3c db 3a 6a 06 d8 ba ce 6f c6 9e d0 2b 31 79 3c a8 cf c4 b0 88 2c 0a c4 3b a4 20 10 b4
+59 1c 52 c5 b2 52 55 7b a8 a0 64 10 de 69 da 7c 9b d8 84 c5 3e fc 0f 02 41 00 e3 1d 55 ca 19 8e
+a3 af c9 5d 9f 74 cd 4a 56 10 69 60 44 df f9 77 fe 3a ad 10 00 35 48 60 0f 95 2f a0 7d b8 9f 6c
+1a 33 9e d3 c8 7e 80 56 f7 bc db cf 9e c3 74 11 bc fd a0 8c d6 b8 34 7c 38 51 02 41 00 af ac 72
+3f 29 73 98 36 18 da 23 9e cd 58 dc b8 fc a3 a9 34 40 60 b8 2a 55 dc 95 f1 b9 49 14 aa 42 6e 19
+85 c0 58 16 78 1b ec fd e3 ef 4c b3 e5 64 cc f2 c3 fd d0 cd 8c 80 5a 9b b9 2f 56 1a 0f 02 41 00
+ad af 36 77 6b 1a 19 76 0a 91 cd ab 1e 80 15 d7 51 2e ed 1d 38 04 1a e9 36 86 81 12 3e 7a 30 10
+90 2e b5 56 a6 9c 9e 61 11 ba b6 9e 7f 79 82 d5 ec 68 17 eb 33 6d 89 51 91 21 83 e7 b5 43 b6 31
+02 41 00 90 44 37 85 60 28 0b 55 67 c2 12 99 4e ea 58 09 37 c8 34 90 da 63 cd 24 58 4b 2e 17 55
+60 65 35 74 d8 c0 10 a2 2c 89 a8 06 84 9c 6f c5 6e 3a a2 3b 35 23 00 d4 4e 93 16 8f 40 47 96 36
+f8 4f e8
+>>>
+
+
+In the middle of line 5 I see ``03 01 00 01``, which I recognize as *e*.  (This is a different key than the ones we looked at before).  If you print out the components for reference:
+
+.. sourcecode:: python
+
+    > openssl rsa -text -in kf
+    Private-Key: (1024 bit)
+    modulus:
+        00:d7:a9:f0:a3:47:4d:02:b4:4d:5c:0b:13:eb:b7: ..
+
+and then compare, what you will find is
+
+.. sourcecode:: bash
+
+    30 82 
+    02 5f 
+    02 01 00
+    02 81 81 *n*
+    02 03 *e*
+    02 81 81 *d*
+    02 41 *p*
+    02 41 *q*
+    02 41 (all the other components)
+
+Also, all the key components except *e* start with a leading ``00``.  I didn't find an example of ``02`` within a key component, but I might have missed it.  So the structure of each part is extremely simple, just ``02`` + id + ``00`` + data.  The last byte of the key data is the last byte of the "coefficient".
+
