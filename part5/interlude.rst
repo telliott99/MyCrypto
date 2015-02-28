@@ -1,4 +1,4 @@
-.. _n9:
+.. _interlude:
 
 #########
 Interlude
