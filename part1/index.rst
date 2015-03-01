@@ -11,3 +11,4 @@ Contents:
    xor
    bytes
    base64
+   history
