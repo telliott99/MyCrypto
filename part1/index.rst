@@ -9,6 +9,9 @@ Contents:
    
    intro
    xor
+   history
+   enigma1
+   enigma2
    bytes
    base64
-   history
+   
