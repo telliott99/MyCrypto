@@ -6,13 +6,22 @@ Encryption in History
 
 **Enigma**
 
-In the Enigma encryption machine
+The Enigma encryption machine was used extensively by the German military during World War II
 
 http://en.wikipedia.org/wiki/Enigma_machine
 
-a rotor is a mechano-electrical device that maps one ordering of the letters of the alphabet to another ordering.  
+employs a series of *rotors*.  A rotor is an electro-mechanical device that maps one ordering of the letters of the alphabet to another ordering.
 
-For each version of Enigma, there was a small number of rotors (3-5) with fixed mappings.
+As a simple example, we could imagine reversing the alphabet:
+
+.. sourcecode:: bash
+
+    fwd  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    rev  ZYXWVUTSRQPONMLKJIHGFEDCBA  
+
+To encode a letter, find it in the alphabet on the first line, and then read off the encoding directly below.
+
+Each version of Enigma was provided with a small number of rotors (usually 3) with fixed wiring, but the mapping could be changed by a process of *rotation* of an outside ring.
 
 .. image:: /_static/enigma1.jpg
    :scale: 50 %
@@ -21,6 +30,8 @@ For example, the Enigma I rotors included
 
 http://en.wikipedia.org/wiki/Enigma_rotor_details
 
+three rotors with these mappings in the base state:
+
 .. sourcecode:: bash
 
     	ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -28,9 +39,7 @@ http://en.wikipedia.org/wiki/Enigma_rotor_details
     II	AJDKSIRUXBLHWTMCQGZNPYFVOE
     III	BDFHJLCPRTXVZNYEIWGAKMUSQO
 
-A letter can map to itself (I count 4 such events in 26 x 3 = 78).
-
-As letters of the plaintext are sequentially encoded, one or more of the rotors is rotated.  We can model this like so:
+As each letter from the plaintext is sequentially encoded, one or more of the rotors is rotated.  We can model this like so:
 
 step 1
 
@@ -46,45 +55,101 @@ step 2 (rotor I advanced one position)
     .	ABCDEFGHIJKLMNOPQRSTUVWXYZ
     I	KMFLGDQVZNTOWYHXUSPAIBRCJE
     
-To encode a letter, find it in the alphabet on the first line, and then read off the encoding directly below.
+The pair of letters ``AA`` would thus be encoded as ``EK``.  The second is coding is different because rotor I has been advanced for step 2.
 
-The pair of letters ``AA`` would thus be encoded as ``EK``.  The change occurs because rotor I has been advanced for step 2.
+More complexity is achieved by using a series of rotors.  The collection of rotors is works just like an odometer which records mileage in an automobile (or decimal addition).  One complete turn of the rotor in the tenths place then advances the unit miles rotor by 1 step, and then a full turn of the unit miles rotor advances the tens place by 1.  
 
-More complexity is achieved by using combinations of rotors in series.  The collection of rotors is rotated just like an odometer, each complete turn of the rotor showing tenths of a mile in an odometer rotates the unit miles rotor by 1, and a full turn of the unit miles turns the tens place by 1.  
+In the schematic shown in wikipedia, the right hand rotor is the one that takes the plaintext letter input, and it is the one that rotates the fastest.
 
-In the schematic on wikipedia, the right hand rotor is the that takes the plaintext letter input (rotor I), and it is the one that rotates the fastest.
+In this scheme, after encryption, letters from the plaintext are encoded one-at-a-time, so they retain the same relative positions in the ciphertext (although they are not encoded independently, as indicated above).
 
-In this scheme, letters from the plaintext preserve the same position in the ciphertext, and each encryption step occurs one-at-a-time (although not independently, as the above text indicates).
-
-All traffic encrypted for a single message would use a particular arrangement of 3-5 available rotors.
+All traffic encrypted for a single message would use a particular starting arrangement of the available rotors.
 
 Furthermore, a "letter" moving through the arrangement is *reflected* and sent backward through the same set of three rotors in reverse orientation.  Consider the arrangement given above
 
 .. sourcecode:: bash
 
-    	ABCDEFGHIJKLMNOPQRSTUVWXYZ
-    I	EKMFLGDQVZNTOWYHXUSPAIBRCJ
-    II	AJDKSIRUXBLHWTMCQGZNPYFVOE
-    III	BDFHJLCPRTXVZNYEIWGAKMUSQO
+    .    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    I    EKMFLGDQVZNTOWYHXUSPAIBRCJ
+    
+	.    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    II   AJDKSIRUXBLHWTMCQGZNPYFVOE
+    
+	.    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    III  BDFHJLCPRTXVZNYEIWGAKMUSQO
 
-An `A` comes in and becomes, sequentially `E` (rotor I), then `E` becomes `S` (rotor II) and finally `S` becomes `G` (rotor III).  
+An `A` becomes sequentially `E` (rotor I), then `E` becomes `S` (rotor II) and finally `S` becomes `G` (rotor III).  
 
-After rotation, the letter is reflected and sent back through in reverse order.  However, in the meantime, the one or more rotors have rotated according to the odometer model.  Thus, for the return trip we have
+After rotation, the letter is reflected and sent back through in reverse order.  
+
+There is more to the process, as explained below, but even at this point I had some misconceptions about the process that were cleared up by this authoritative reference
+
+http://www.codesandciphers.org.uk/enigma/example1.htm
+
+main page:
+
+http://www.codesandciphers.org.uk/enigma/enigma1.htm
+
+The example given has the rotors in the sequence I-II-III, with the current entering from the right.  So the order of use is actually III-II-I-reflector-I-II-III.
+
+This is just a matter of orientation.  More important are these two facts:  first, there is *no rotation* during any individual cycle.  
+
+Secondly, the rotors have the property that decryption is exactly *the same process* as encryption.  The cipher is symmetric, so that the pair of letters (AU) is enciphered as `A -> U` and `U -> A`.
+
+Here are the three rotors in series:
 
 .. sourcecode:: bash
 
-    	ABCDEFGHIJKLMNOPQRSTUVWXYZ
-    III	BDFHJLCPRTXVZNYEIWGAKMUSQO
-    II	AJDKSIRUXBLHWTMCQGZNPYFVOE
-    I	KMFLGDQVZNTOWYHXUSPAIBRCJE
-    
-Here, we are going to move through the rotors in the reverse direction.  What this corresponds to is finding the input letter in the line for a given rotor, and reading off the "output" in the alphabet on the first line.
+    III
+    ABCDEF G HIJKLMNO P QRSTUVWXYZ
+    BDFHJL C PRTXVZNY E IWGAKMUSQO
 
-The `G` from the reflector becomes `E`, then `Z` and finally `M`.
+    II
+    AB C D E FGHIJKLMNOPQRSTUVWXYZ
+    AJ D K S IRUXBLHWTMCQGZNPYFVOE
 
-A last layer of encryption is provided by the "plugboard"  The plugboard swaps pairs of letters, for example, `A` might become `T` and at the same time `T` becomes `A`.  Not all letters were switched in the plugboard, but most are.  Normally, ten pairs were used.
+    I
+    ABC D EFGHIJKLMNOPQR S TUVWXYZ
+    EKM F LGDQVZNTOWYHXU S PAIBRCJ
 
-Suppose that the plugboard we are using swaps `A` for `T` and `M` for `J`.  Then, to encode a message starting with `THE` the first letter `T` would go through the plugboard (in the forward direction) to become `A`, become encoded to `M` as described above, and then go out through the plugboard in reverse to become, finally, `J`.
+the standard reflector is
+
+.. sourcecode:: bash
+
+    ABCDE F GHIJKLMNOPQR S TUVWXYZ
+    YRUHQ S LDPXNGOKMIEB F ZCWVJAT
+
+The example given is
+
+.. sourcecode:: bash
+
+    G -> C -> D -> F -> S
+
+After that we must *invert the substitutions*.  Here we have done that for each of the 3 rotors.
+
+.. sourcecode:: bash
+
+    I
+    ABCDE F GHIJKLMNOPQR S TUVWXYZ
+    UWYGA D FPVZBECKMTHX S LRINQOJ
+
+    II
+    ABC D EFGHIJKLMNOPQR S TUVWXYZ
+    AJP C ZWRLFBDKOTYUQG E NHXMIVS
+
+    III
+    AB C D E FGHIJKLMNOPQRSTUVWXYZ
+    TA G B P CSDQEUFVNZHYIXJWLRKOM
+
+Now, starting with `S` from the reflector we end up with `P`;  overall, we have `G -> P`.  Using the simulator below, we will show that `P -> G`.  As mentioned, the operation of the rotors (in this combination and without "rotation") gives 13 pairs of letters which are simply exchanged:
+
+.. sourcecode:: bash
+
+    (AU)(BE)(CJ)(DO)(FT)(GP)(HZ)(IW)(KN)(LS)(MR)(QV)(XY)
+
+In actual operation, for the second letter one or more rotors have rotated according to the odometer model.
+
+A last layer of encryption is provided by the "plugboard"  The plugboard swaps pairs of letters, for example, `A` might become `T` and at the same time `T` becomes `A`.  Not all letters were switched in the plugboard, but most are.  Normally, ten pairs were used.  The plugboard settings would be changed each day.
 
 In the language of linear algebra, we might express the algorithm as:
 
@@ -92,10 +157,91 @@ In the language of linear algebra, we might express the algorithm as:
 
     E = P R M L U L^{-1} M^{-1} R^{-1} P^{-1}
 
-remembering of course, that the rotors RML advance with each letter, as described above.
+remembering of course, that the rotors ``I.II.III`` advance with each letter, as described above.
+
+At the end below is the listing for the simulator and its utilities (first version, no rotation).  But before that, here is the output of a run with the rotors described above but no plugboard:
+
+.. sourcecode:: bash
+
+    > python enigma.py 
+    A -> B -> J -> Z -> T -> L -> K -> U
+    B -> D -> K -> N -> K -> B -> J -> E
+    C -> F -> I -> V -> W -> N -> T -> J
+    D -> H -> U -> A -> Y -> O -> Y -> O
+    E -> J -> B -> K -> N -> K -> D -> B
+    F -> L -> H -> Q -> E -> A -> A -> T
+    G -> C -> D -> F -> S -> S -> E -> P
+    H -> P -> C -> M -> O -> M -> O -> Z
+    I -> R -> G -> D -> H -> P -> U -> W
+    J -> T -> N -> W -> V -> I -> F -> C
+    K -> X -> V -> I -> P -> T -> N -> N
+    L -> V -> Y -> C -> U -> R -> G -> S
+    M -> Z -> E -> L -> G -> F -> W -> R
+    N -> N -> T -> P -> I -> V -> X -> K
+    O -> Y -> O -> Y -> A -> U -> H -> D
+    P -> E -> S -> S -> F -> D -> C -> G
+    Q -> I -> X -> R -> B -> W -> M -> V
+    R -> W -> F -> G -> L -> E -> Z -> M
+    S -> G -> R -> U -> C -> Y -> V -> L
+    T -> A -> A -> E -> Q -> H -> L -> F
+    U -> K -> L -> T -> Z -> J -> B -> A
+    V -> M -> W -> B -> R -> X -> I -> Q
+    W -> U -> P -> H -> D -> G -> R -> I
+    X -> S -> Z -> J -> X -> Q -> Q -> Y
+    Y -> Q -> Q -> X -> J -> Z -> S -> X
+    Z -> O -> M -> O -> M -> C -> P -> H
+    >
+
+Notice that we have generated all the pairs described above:
+
+.. sourcecode:: bash
+
+    (AU)(BE)(CJ)(DO)(FT)(GP)(HZ)(IW)(KN)(LS)(MR)(QV)(XY)
+
+and here a second run utilizing this plugboard
+
+.. sourcecode:: bash
+
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    OWUREZGPYLKJMQAHNDVTCSBXIF
+
+.. sourcecode:: bash
+
+    > python enigma.py 
+    A -> O -> Y -> O -> Y -> A -> U -> H -> D -> R
+    B -> W -> U -> P -> H -> D -> G -> R -> I -> Y
+    C -> U -> K -> L -> T -> Z -> J -> B -> A -> O
+    D -> R -> W -> F -> G -> L -> E -> Z -> M -> M
+    E -> E -> J -> B -> K -> N -> K -> D -> B -> W
+    F -> Z -> O -> M -> O -> M -> C -> P -> H -> P
+    G -> G -> C -> D -> F -> S -> S -> E -> P -> H
+    H -> P -> E -> S -> S -> F -> D -> C -> G -> G
+    I -> Y -> Q -> Q -> X -> J -> Z -> S -> X -> X
+    J -> L -> V -> Y -> C -> U -> R -> G -> S -> V
+    K -> K -> X -> V -> I -> P -> T -> N -> N -> Q
+    L -> J -> T -> N -> W -> V -> I -> F -> C -> U
+    M -> M -> Z -> E -> L -> G -> F -> W -> R -> D
+    N -> Q -> I -> X -> R -> B -> W -> M -> V -> S
+    O -> A -> B -> J -> Z -> T -> L -> K -> U -> C
+    P -> H -> P -> C -> M -> O -> M -> O -> Z -> F
+    Q -> N -> N -> T -> P -> I -> V -> X -> K -> K
+    R -> D -> H -> U -> A -> Y -> O -> Y -> O -> A
+    S -> V -> M -> W -> B -> R -> X -> I -> Q -> N
+    T -> T -> A -> A -> E -> Q -> H -> L -> F -> Z
+    U -> C -> F -> I -> V -> W -> N -> T -> J -> L
+    V -> S -> G -> R -> U -> C -> Y -> V -> L -> J
+    W -> B -> D -> K -> N -> K -> B -> J -> E -> E
+    X -> X -> S -> Z -> J -> X -> Q -> Q -> Y -> I
+    Y -> I -> R -> G -> D -> H -> P -> U -> W -> B
+    Z -> F -> L -> H -> Q -> E -> A -> A -> T -> T
+    >
+
+Here, notice that with the plugboard, the output has changed but it still has the symmetry property, encoding is reversible:  A -> R and R -> A.
+
+``enigma_util.py``:
+
+.. literalinclude:: /_static/enigma_util.py
 
 ``enigma.py``:
 
 .. literalinclude:: /_static/enigma.py
-
-
