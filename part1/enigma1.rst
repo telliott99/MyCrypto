@@ -70,10 +70,10 @@ Furthermore, a "letter" moving through the arrangement is *reflected* and sent b
     ABCDEFGHIJKLMNOPQRSTUVWXYZ
     EKMFLGDQVZNTOWYHXUSPAIBRCJ - I
     
-	ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ
     AJDKSIRUXBLHWTMCQGZNPYFVOE - II
     
-	ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ
     BDFHJLCPRTXVZNYEIWGAKMUSQO - III
 
 An `A` becomes sequentially `E` (rotor I), then `E` becomes `S` (rotor II) and finally `S` becomes `G` (rotor III).  
