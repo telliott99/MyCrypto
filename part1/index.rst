@@ -8,10 +8,10 @@ Contents:
    :maxdepth: 1
    
    intro
-   xor
    history
-   enigma1
-   enigma2
+   xor
    bytes
    base64
+   enigma1
+   enigma2
    
