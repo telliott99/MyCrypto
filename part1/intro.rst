@@ -64,7 +64,9 @@ In general, some kind of two-factor authentication is a good thing.  One form of
 
 The classic one is, of course, what is your mother’s maiden name?  But there are plenty of others, as I’m sure you know.
 
-A twist on this is when the server generates a question for you on its own.  This happened for me with a Chase credit card, where they came up with a question (don't ask me how) and I didn't know the answer.  It can also happen by design.  The site queries one of the credit agencies for your old addresses, presents a list, and then asks at which ones have you lived or *not* lived.
+A twist on this is when the server generates a question for you on its own.  This happened for me with a Chase credit card, where they came up with a question (don't ask me how) and I didn't know the answer.  Since they also had an old phone number, I was stuck.
+
+New challenge questions can also happen by design.  The site queries one of the credit agencies for your old addresses, presents a list, and then asks at which ones have you lived or *not* lived.
 
 My take on this is that it is fine, with one proviso.  The website *must allow you to set your own answers*, and they should allow anything.  For example:
 
@@ -178,4 +180,4 @@ http://telliott99.blogspot.com/2010/12/turn-autocompleteon.html
 
 This is not just annoying, it's wrong.  Requiring users to type in their passwords each time is a strong incentive to use weak passwords.  That's bad.  
 
-Of course there is an alternative risk, that the user will somehow "save" his password in an internet cafe, or forget to logoff when done.  That is to me a lesser a problem, and if it is to use, well don't turn off **autocomplete="off"**.
+Of course there is an alternative risk, that the user will somehow "save" his password in an internet cafe, or forget to logoff when done.  That is to me a lesser a problem, but if it bothers you, well, don't turn off **autocomplete="off"**.
