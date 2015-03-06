@@ -32,10 +32,10 @@ three rotors with these mappings in the base state:
 
 .. sourcecode:: bash
 
-    	ABCDEFGHIJKLMNOPQRSTUVWXYZ
-    I	EKMFLGDQVZNTOWYHXUSPAIBRCJ
-    II	AJDKSIRUXBLHWTMCQGZNPYFVOE
-    III	BDFHJLCPRTXVZNYEIWGAKMUSQO
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    EKMFLGDQVZNTOWYHXUSPAIBRCJ - I
+    AJDKSIRUXBLHWTMCQGZNPYFVOE - II
+    BDFHJLCPRTXVZNYEIWGAKMUSQO - III
 
 As each letter from the plaintext is sequentially encoded, one or more of the rotors is rotated.  We can model this like so:
 
@@ -43,15 +43,15 @@ step 1
 
 .. sourcecode:: bash
 
-    .	ABCDEFGHIJKLMNOPQRSTUVWXYZ
-    I	EKMFLGDQVZNTOWYHXUSPAIBRCJ
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    EKMFLGDQVZNTOWYHXUSPAIBRCJ - I
 
 step 2 (rotor I advanced one position)
 
 .. sourcecode:: bash
 
-    .	ABCDEFGHIJKLMNOPQRSTUVWXYZ
-    I	KMFLGDQVZNTOWYHXUSPAIBRCJE
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    KMFLGDQVZNTOWYHXUSPAIBRCJE - I +1
     
 The pair of letters ``AA`` would thus be encoded as ``EK``.  The second is coding is different because rotor I has been advanced for step 2.
 
@@ -63,18 +63,18 @@ In this scheme, after encryption, letters from the plaintext are encoded one-at-
 
 All traffic encrypted for a single message would use a particular starting arrangement of the available rotors.
 
-Furthermore, a "letter" moving through the arrangement is *reflected* and sent backward through the same set of three rotors in reverse orientation.  Consider the arrangement given above
+Furthermore, a "letter" moving through the arrangement is *reflected* and sent backward through the same set of three rotors in reverse orientation.  Consider the arrangements given above
 
 .. sourcecode:: bash
 
-    .    ABCDEFGHIJKLMNOPQRSTUVWXYZ
-    I    EKMFLGDQVZNTOWYHXUSPAIBRCJ
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    EKMFLGDQVZNTOWYHXUSPAIBRCJ - I
     
-	.    ABCDEFGHIJKLMNOPQRSTUVWXYZ
-    II   AJDKSIRUXBLHWTMCQGZNPYFVOE
+	ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    AJDKSIRUXBLHWTMCQGZNPYFVOE - II
     
-	.    ABCDEFGHIJKLMNOPQRSTUVWXYZ
-    III  BDFHJLCPRTXVZNYEIWGAKMUSQO
+	ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    BDFHJLCPRTXVZNYEIWGAKMUSQO - III
 
 An `A` becomes sequentially `E` (rotor I), then `E` becomes `S` (rotor II) and finally `S` becomes `G` (rotor III).  
 
@@ -98,24 +98,21 @@ Here are the three rotors in series:
 
 .. sourcecode:: bash
 
-    III
     ABCDEF G HIJKLMNO P QRSTUVWXYZ
-    BDFHJL C PRTXVZNY E IWGAKMUSQO
+    BDFHJL C PRTXVZNY E IWGAKMUSQO - III
 
-    II
     AB C D E FGHIJKLMNOPQRSTUVWXYZ
-    AJ D K S IRUXBLHWTMCQGZNPYFVOE
+    AJ D K S IRUXBLHWTMCQGZNPYFVOE - II
 
-    I
     ABC D EFGHIJKLMNOPQR S TUVWXYZ
-    EKM F LGDQVZNTOWYHXU S PAIBRCJ
+    EKM F LGDQVZNTOWYHXU S PAIBRCJ - I
 
 the standard reflector is
 
 .. sourcecode:: bash
 
     ABCDE F GHIJKLMNOPQR S TUVWXYZ
-    YRUHQ S LDPXNGOKMIEB F ZCWVJAT
+    YRUHQ S LDPXNGOKMIEB F ZCWVJAT - R
 
 The example given is
 
@@ -129,17 +126,17 @@ After that we must *invert the substitutions*.  Here we have done that for each 
 
     I
     ABCDE F GHIJKLMNOPQR S TUVWXYZ
-    UWYGA D FPVZBECKMTHX S LRINQOJ
+    UWYGA D FPVZBECKMTHX S LRINQOJ - I r
 
     II
     ABC D EFGHIJKLMNOPQR S TUVWXYZ
-    AJP C ZWRLFBDKOTYUQG E NHXMIVS
+    AJP C ZWRLFBDKOTYUQG E NHXMIVS - II r
 
     III
     AB C D E FGHIJKLMNOPQRSTUVWXYZ
-    TA G B P CSDQEUFVNZHYIXJWLRKOM
+    TA G B P CSDQEUFVNZHYIXJWLRKOM - III r
 
-Now, starting with `S` from the reflector we end up with `P`;  overall, we have `G -> P`.  Using the simulator below, we will show that `P -> G`.  As mentioned, the operation of the rotors (in this combination and without "rotation") gives 13 pairs of letters which are simply exchanged:
+Now, starting with `S` from the reflector we end up with `P`;  overall, we have `G -> P`.  Using the simulator below, we will show that `P -> G` as well.  As mentioned, the operation of the rotors (in this combination and without "rotation") gives 13 pairs of letters which are simply exchanged:
 
 .. sourcecode:: bash
 
@@ -147,7 +144,9 @@ Now, starting with `S` from the reflector we end up with `P`;  overall, we have 
 
 In actual operation, for the second letter one or more rotors have rotated according to the odometer model.
 
-A last layer of encryption is provided by the "plugboard"  The plugboard swaps pairs of letters, for example, `A` might become `T` and at the same time `T` becomes `A`.  Not all letters were switched in the plugboard, but most are.  Normally, ten pairs were used.  The plugboard settings would be changed each day.
+A last layer of encryption is provided by the "plugboard"  The plugboard swaps pairs of letters, for example, `A` might become `T` and at the same time `T` becomes `A`.  
+
+Not all letters were switched in the plugboard, but most are.  Normally, ten pairs were used.  The plugboard settings would be changed each day.
 
 In the language of linear algebra, we might express the algorithm as:
 
@@ -155,9 +154,9 @@ In the language of linear algebra, we might express the algorithm as:
 
     E = P R M L U L^{-1} M^{-1} R^{-1} P^{-1}
 
-remembering of course, that the rotors ``I.II.III`` advance with each letter, as described above.
+remembering of course, that the rotors ``I``, ``II``, ``III`` may advance with each letter (and one of them always does) as described above.
 
-I have written a simulator in Python.  Normally, I don't do much object-oriented programming, but this is a case where rotor objects are an obvious fit.  Also, the plugboard and reflector can be modeled with the same object, we just never rotate them.
+I have written a simulator in Python.  Normally, I don't do much object-oriented programming, but this is a case where rotor "objects" are an obvious fit.  Also, the plugboard and reflector can be modeled with the same rotor object, we just never rotate them.  I draw the line at class inheritance.  :)
 
 At the end below is the listing for the simulator and its utilities (first version, no rotation).  But before that, here is the output of a run with the rotors described above but no plugboard:
 
@@ -236,7 +235,7 @@ and here a second run utilizing this plugboard
     Z -> F -> L -> H -> Q -> E -> A -> A -> T -> T
     >
 
-Here, notice that with inclusion of the plugboard, the output has changed but it still has the symmetry property:  encoding is reversible:  A -> R and R -> A.
+Notice that with inclusion of the plugboard, the output has changed but it still has the reflective symmetry property:  encoding is reversible:  A -> R and R -> A.  This is a desired property of the design, to decrypt a message one starts at the same rotor settings as for encryption, and moves forward in parallel, working on the ciphertext.
 
 ``enigma_util1.py``:
 
