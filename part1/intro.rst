@@ -102,7 +102,7 @@ That is, *n* is much more important than *SZ*.  Taking logarithms
 
     log P = n(log SZ)
 
-We see the issue:  *P* goes linearly with *SZ* but exponentially with *n*.  *SZ* doesn't matter  :), or at least not as much as *n* (length) does.  (Did he really say that?).
+We see the issue:  *P* goes linearly with *SZ* but exponentially with *n*.
 
 As an example, a character set of *SZ* equal to 32 (lowercase English alphabet plus the digits 1-6) gives a length 10 password set with the number of permutations equal to 
 
