@@ -78,3 +78,11 @@ And, or course, we did some ``base64`` stuff
 .. sourcecode:: bash
 
     > openssl base64 -in p.txt -out b.txt
+
+Digests:
+
+.. sourcecode:: bash
+
+    > openssl md5 < filename >
+    > openssl sha1 < filename >
+    > openssl dgst -sha256 < filename >

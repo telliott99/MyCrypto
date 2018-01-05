@@ -116,7 +116,7 @@ If we increase the size of the character set to 64 (base64-encoding) we get
 
     P = 64^{10} = (2^{6})^{10} = 2^{60}
 
-permutations, an increase of a factor of :math:`2^{10}`.  Doubling the size the character set doubles the number of permutations for each character.
+permutations, an increase of a factor of :math:`2^{10}`.  Doubling the size of the character set doubles the number of permutations for each character.
 
 On the other hand, retaining the smaller character set but increasing the length by just two gives exactly the same number of permutations.  
 
